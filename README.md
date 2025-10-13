@@ -104,8 +104,8 @@ project/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/edumind/edumind.git
-cd edumind
+git clone https://github.com/daxp472/EduMind.git
+cd EduMind
 ```
 
 2. Install frontend dependencies:
