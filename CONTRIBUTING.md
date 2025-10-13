@@ -20,7 +20,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 ```
 project/
-├── backend/                 # Backend API (Node.js + Express)
+├── backend/                      # Backend API (Node.js + Express)
 │   ├── controllers/         # Request handlers
 │   ├── models/              # Database models
 │   ├── routes/              # API routes
@@ -28,15 +28,19 @@ project/
 │   ├── config/              # Configuration files
 │   ├── utils/               # Utility functions
 │   └── server.js            # Entry point
-├── src/                     # Frontend source code (React)
-│   ├── components/          # Reusable UI components
-│   ├── context/             # React context providers
-│   ├── pages/               # Page components
-│   ├── services/            # API service layer
-│   ├── types/               # TypeScript types
-│   ├── App.tsx              # Main app component
-│   └── main.tsx             # Entry point
-└── ...
+├── frontend/                     # Frontend source code (React)
+│   ├── src/                 # Frontend source code (React)
+│   |   ├── components/          # Reusable UI components
+│   |   ├── context/             # React context providers
+│   |   ├── pages/               # Page components
+│   |   ├── services/            # API service layer
+│   |   ├── types/               # TypeScript types
+│   |   ├── App.tsx              # Main app component
+│   |   └── main.tsx             # Entry point
+│   ├── index.html           # HTML template for React app
+│   ├── .env                 # Environment variables   
+|   └── package.json         # Project dependencies
+└── 
 ```
 
 ## 🛠️ Development Setup
