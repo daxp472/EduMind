@@ -9,7 +9,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ## 🚀 Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/edumind.git`
+2. Clone your fork: `git clone https://github.com/daxp472/EduMind.git`
 3. Create a branch for your feature: `git checkout -b feature/your-feature-name`
 4. Make your changes
 5. Commit your changes: `git commit -am "Add some feature"`
@@ -53,8 +53,8 @@ project/
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/edumind/edumind.git
-cd edumind
+git clone https://github.com/daxp472/EduMind.git
+cd EduMind
 
 # Install frontend dependencies
 npm install

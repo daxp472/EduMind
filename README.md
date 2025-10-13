@@ -8,9 +8,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/edumind/edumind" alt="License" />
-  <img src="https://img.shields.io/github/last-commit/edumind/edumind" alt="Last Commit" />
-  <img src="https://img.shields.io/github/issues/edumind/edumind" alt="Issues" />
+  <img src="https://img.shields.io/github/license/daxp472/EduMind" alt="License" />
+  <img src="https://img.shields.io/github/last-commit/daxp472/EduMind" alt="Last Commit" />
+  <img src="https://img.shields.io/github/issues/daxp472/EduMind" alt="Issues" />
 </p>
 
 <p align="center">
@@ -70,25 +70,27 @@ EduMind is a next-generation learning platform that leverages artificial intelli
 
 ```
 project/
-├── backend/                 # Backend API (Node.js + Express)
+├── backend/                      # Backend API (Node.js + Express)
 │   ├── controllers/         # Request handlers
 │   ├── models/              # Database models
 │   ├── routes/              # API routes
 │   ├── middleware/          # Custom middleware
 │   ├── config/              # Configuration files
 │   ├── utils/               # Utility functions
-│   ├── test/                # Test files
 │   └── server.js            # Entry point
-├── src/                     # Frontend source code (React)
-│   ├── components/          # Reusable UI components
-│   ├── context/             # React context providers
-│   ├── pages/               # Page components
-│   ├── services/            # API service layer
-│   ├── types/               # TypeScript types
-│   ├── App.tsx              # Main app component
-│   └── main.tsx             # Entry point
-├── public/                  # Static assets
-└── ...
+├── frontend/                     # Frontend source code (React)
+│   ├── src/                 # Frontend source code (React)
+│   |   ├── components/          # Reusable UI components
+│   |   ├── context/             # React context providers
+│   |   ├── pages/               # Page components
+│   |   ├── services/            # API service layer
+│   |   ├── types/               # TypeScript types
+│   |   ├── App.tsx              # Main app component
+│   |   └── main.tsx             # Entry point
+│   ├── index.html           # HTML template for React app
+│   ├── .env                 # Environment variables   
+|   └── package.json         # Project dependencies
+└── 
 ```
 
 ## 🛠️ Getting Started
