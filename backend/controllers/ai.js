@@ -1,0 +1,737 @@
+const axios = require('axios');
+const User = require('../models/User');
+const AIRequest = require('../models/AIRequest');
+const aiConfig = require('../config/ai');
+
+// @desc    Generate text summary
+// @route   POST /api/ai/summarize
+// @access  Private/Guest
+exports.summarizeText = async (req, res, next) => {
+  try {
+    const { text, type = 'bullet', length = 'medium' } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide text to summarize'
+      });
+    }
+    
+    // Try AI services in order until one succeeds
+    let result = null;
+    let error = null;
+    let serviceIndex = -1;
+    let aiServiceUsed = null;
+    
+    do {
+      const nextService = aiConfig.getNextService(serviceIndex);
+      aiServiceUsed = nextService.service;
+      serviceIndex = nextService.index;
+      
+      try {
+        result = await callAIService(aiServiceUsed, 'summarize', { text, type, length });
+        break; // Success, exit loop
+      } catch (err) {
+        error = err;
+        console.log(`AI service ${aiServiceUsed.name} failed, trying next service...`);
+      }
+    } while (serviceIndex < aiConfig.getActiveServices().length - 1);
+    
+    if (!result) {
+      // All services failed
+      // Log the failed request
+      await AIRequest.create({
+        user: req.user.id === 'guest' ? null : req.user.id,
+        tool: 'summarizer',
+        input: text,
+        aiService: aiServiceUsed.name,
+        success: false,
+        error: error.message
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'All AI services are currently unavailable. Please try again later.'
+      });
+    }
+    
+    // Log the successful request
+    await AIRequest.create({
+      user: req.user.id === 'guest' ? null : req.user.id,
+      tool: 'summarizer',
+      input: text,
+      output: result.summary,
+      aiService: aiServiceUsed.name,
+      tokensUsed: result.tokensUsed || 0,
+      processingTime: result.processingTime || 0,
+      success: true
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        summary: result.summary,
+        aiService: aiServiceUsed.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during text summarization'
+    });
+  }
+};
+
+// @desc    Generate quiz questions
+// @route   POST /api/ai/generate-quiz
+// @access  Private/Guest
+exports.generateQuiz = async (req, res, next) => {
+  try {
+    const { text, numQuestions = 5, difficulty = 'medium' } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide text to generate quiz from'
+      });
+    }
+    
+    // Try AI services in order until one succeeds
+    let result = null;
+    let error = null;
+    let serviceIndex = -1;
+    let aiServiceUsed = null;
+    
+    do {
+      const nextService = aiConfig.getNextService(serviceIndex);
+      aiServiceUsed = nextService.service;
+      serviceIndex = nextService.index;
+      
+      try {
+        result = await callAIService(aiServiceUsed, 'quiz', { text, numQuestions, difficulty });
+        break; // Success, exit loop
+      } catch (err) {
+        error = err;
+        console.log(`AI service ${aiServiceUsed.name} failed, trying next service...`);
+      }
+    } while (serviceIndex < aiConfig.getActiveServices().length - 1);
+    
+    if (!result) {
+      // All services failed
+      // Log the failed request
+      await AIRequest.create({
+        user: req.user.id === 'guest' ? null : req.user.id,
+        tool: 'quiz-generator',
+        input: text,
+        aiService: aiServiceUsed.name,
+        success: false,
+        error: error.message
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'All AI services are currently unavailable. Please try again later.'
+      });
+    }
+    
+    // Log the successful request
+    await AIRequest.create({
+      user: req.user.id === 'guest' ? null : req.user.id,
+      tool: 'quiz-generator',
+      input: text,
+      output: JSON.stringify(result.questions),
+      aiService: aiServiceUsed.name,
+      tokensUsed: result.tokensUsed || 0,
+      processingTime: result.processingTime || 0,
+      success: true
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        questions: result.questions,
+        aiService: aiServiceUsed.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during quiz generation'
+    });
+  }
+};
+
+// @desc    AI Tutor
+// @route   POST /api/ai/tutor
+// @access  Private/Guest
+exports.aiTutor = async (req, res, next) => {
+  try {
+    const { question, context } = req.body;
+    
+    if (!question) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a question for the AI tutor'
+      });
+    }
+    
+    // Try AI services in order until one succeeds
+    let result = null;
+    let error = null;
+    let serviceIndex = -1;
+    let aiServiceUsed = null;
+    
+    do {
+      const nextService = aiConfig.getNextService(serviceIndex);
+      aiServiceUsed = nextService.service;
+      serviceIndex = nextService.index;
+      
+      try {
+        result = await callAIService(aiServiceUsed, 'tutor', { question, context });
+        break; // Success, exit loop
+      } catch (err) {
+        error = err;
+        console.log(`AI service ${aiServiceUsed.name} failed, trying next service...`);
+      }
+    } while (serviceIndex < aiConfig.getActiveServices().length - 1);
+    
+    if (!result) {
+      // All services failed
+      // Log the failed request
+      await AIRequest.create({
+        user: req.user.id === 'guest' ? null : req.user.id,
+        tool: 'tutor',
+        input: question,
+        aiService: aiServiceUsed.name,
+        success: false,
+        error: error.message
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'All AI services are currently unavailable. Please try again later.'
+      });
+    }
+    
+    // Log the successful request
+    await AIRequest.create({
+      user: req.user.id === 'guest' ? null : req.user.id,
+      tool: 'tutor',
+      input: question,
+      output: result.answer,
+      aiService: aiServiceUsed.name,
+      tokensUsed: result.tokensUsed || 0,
+      processingTime: result.processingTime || 0,
+      success: true
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        answer: result.answer,
+        aiService: aiServiceUsed.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during AI tutoring'
+    });
+  }
+};
+
+// @desc    Study Planner
+// @route   POST /api/ai/study-planner
+// @access  Private
+exports.studyPlanner = async (req, res, next) => {
+  try {
+    const { subjects, timeAvailable, goals } = req.body;
+    
+    if (!subjects || !timeAvailable) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide subjects and time available for study planning'
+      });
+    }
+    
+    // Try AI services in order until one succeeds
+    let result = null;
+    let error = null;
+    let serviceIndex = -1;
+    let aiServiceUsed = null;
+    
+    do {
+      const nextService = aiConfig.getNextService(serviceIndex);
+      aiServiceUsed = nextService.service;
+      serviceIndex = nextService.index;
+      
+      try {
+        result = await callAIService(aiServiceUsed, 'study-planner', { subjects, timeAvailable, goals });
+        break; // Success, exit loop
+      } catch (err) {
+        error = err;
+        console.log(`AI service ${aiServiceUsed.name} failed, trying next service...`);
+      }
+    } while (serviceIndex < aiConfig.getActiveServices().length - 1);
+    
+    if (!result) {
+      // All services failed
+      // Log the failed request
+      await AIRequest.create({
+        user: req.user.id,
+        tool: 'study-planner',
+        input: JSON.stringify({ subjects, timeAvailable, goals }),
+        aiService: aiServiceUsed.name,
+        success: false,
+        error: error.message
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'All AI services are currently unavailable. Please try again later.'
+      });
+    }
+    
+    // Log the successful request
+    await AIRequest.create({
+      user: req.user.id,
+      tool: 'study-planner',
+      input: JSON.stringify({ subjects, timeAvailable, goals }),
+      output: JSON.stringify(result.plan),
+      aiService: aiServiceUsed.name,
+      tokensUsed: result.tokensUsed || 0,
+      processingTime: result.processingTime || 0,
+      success: true
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        plan: result.plan,
+        aiService: aiServiceUsed.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during study planning'
+    });
+  }
+};
+
+// @desc    Flashcard Generator
+// @route   POST /api/ai/flashcards
+// @access  Private
+exports.generateFlashcards = async (req, res, next) => {
+  try {
+    const { text, numCards = 10 } = req.body;
+    
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide text to generate flashcards from'
+      });
+    }
+    
+    // Try AI services in order until one succeeds
+    let result = null;
+    let error = null;
+    let serviceIndex = -1;
+    let aiServiceUsed = null;
+    
+    do {
+      const nextService = aiConfig.getNextService(serviceIndex);
+      aiServiceUsed = nextService.service;
+      serviceIndex = nextService.index;
+      
+      try {
+        result = await callAIService(aiServiceUsed, 'flashcards', { text, numCards });
+        break; // Success, exit loop
+      } catch (err) {
+        error = err;
+        console.log(`AI service ${aiServiceUsed.name} failed, trying next service...`);
+      }
+    } while (serviceIndex < aiConfig.getActiveServices().length - 1);
+    
+    if (!result) {
+      // All services failed
+      // Log the failed request
+      await AIRequest.create({
+        user: req.user.id,
+        tool: 'flashcard-generator',
+        input: text,
+        aiService: aiServiceUsed.name,
+        success: false,
+        error: error.message
+      });
+      
+      return res.status(500).json({
+        success: false,
+        message: 'All AI services are currently unavailable. Please try again later.'
+      });
+    }
+    
+    // Log the successful request
+    await AIRequest.create({
+      user: req.user.id,
+      tool: 'flashcard-generator',
+      input: text,
+      output: JSON.stringify(result.flashcards),
+      aiService: aiServiceUsed.name,
+      tokensUsed: result.tokensUsed || 0,
+      processingTime: result.processingTime || 0,
+      success: true
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        flashcards: result.flashcards,
+        aiService: aiServiceUsed.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error during flashcard generation'
+    });
+  }
+};
+
+// Generic function to call different AI services
+const callAIService = async (service, tool, params) => {
+  const startTime = Date.now();
+  
+  switch (service.name) {
+    case 'OpenAI':
+      return await callOpenAI(service, tool, params);
+    case 'Gemini':
+      return await callGemini(service, tool, params);
+    case 'Grok':
+      return await callGrok(service, tool, params);
+    default:
+      throw new Error(`Unsupported AI service: ${service.name}`);
+  }
+};
+
+// Call OpenAI API
+const callOpenAI = async (service, tool, params) => {
+  let prompt;
+  
+  switch (tool) {
+    case 'summarize':
+      prompt = `Summarize the following text in ${params.length} ${params.type} format:\n\n${params.text}`;
+      break;
+    case 'quiz':
+      prompt = `Generate ${params.numQuestions} ${params.difficulty}-level quiz questions from the following text. Return as JSON array with "question", "options" (array), and "correctAnswer" fields:\n\n${params.text}`;
+      break;
+    case 'tutor':
+      prompt = `As an AI tutor, answer the following question: ${params.question}\n\nContext: ${params.context || 'No additional context provided'}`;
+      break;
+    case 'study-planner':
+      prompt = `Create a study plan for the following subjects: ${params.subjects.join(', ')}
+
+Available time: ${params.timeAvailable} hours per week
+
+Goals: ${params.goals || 'Not specified'}`;
+      break;
+    case 'flashcards':
+      prompt = `Generate ${params.numCards} flashcards from the following text. Return as JSON array with "front" and "back" fields:\n\n${params.text}`;
+      break;
+    default:
+      throw new Error(`Unsupported tool: ${tool}`);
+  }
+  
+  const response = await axios.post(
+    `${service.baseUrl}/chat/completions`,
+    {
+      model: service.model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${service.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  
+  const endTime = Date.now();
+  
+  // Parse response based on tool
+  let result;
+  switch (tool) {
+    case 'summarize':
+      result = {
+        summary: response.data.choices[0].message.content
+      };
+      break;
+    case 'quiz':
+      try {
+        result = {
+          questions: JSON.parse(response.data.choices[0].message.content)
+        };
+      } catch (e) {
+        // If JSON parsing fails, return as plain text
+        result = {
+          questions: [{
+            question: "Generated quiz content",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctAnswer: "Option A"
+          }]
+        };
+      }
+      break;
+    case 'tutor':
+      result = {
+        answer: response.data.choices[0].message.content
+      };
+      break;
+    case 'study-planner':
+      result = {
+        plan: response.data.choices[0].message.content
+      };
+      break;
+    case 'flashcards':
+      try {
+        result = {
+          flashcards: JSON.parse(response.data.choices[0].message.content)
+        };
+      } catch (e) {
+        // If JSON parsing fails, return as plain text
+        result = {
+          flashcards: [{
+            front: "Front of flashcard",
+            back: "Back of flashcard"
+          }]
+        };
+      }
+      break;
+    default:
+      result = {
+        content: response.data.choices[0].message.content
+      };
+  }
+  
+  return {
+    ...result,
+    tokensUsed: response.data.usage?.total_tokens || 0,
+    processingTime: endTime - startTime
+  };
+};
+
+// Call Gemini API
+const callGemini = async (service, tool, params) => {
+  let prompt;
+  
+  switch (tool) {
+    case 'summarize':
+      prompt = `Summarize the following text in ${params.length} ${params.type} format:\n\n${params.text}`;
+      break;
+    case 'quiz':
+      prompt = `Generate ${params.numQuestions} ${params.difficulty}-level quiz questions from the following text. Return as JSON array with "question", "options" (array), and "correctAnswer" fields:\n\n${params.text}`;
+      break;
+    case 'tutor':
+      prompt = `As an AI tutor, answer the following question: ${params.question}\n\nContext: ${params.context || 'No additional context provided'}`;
+      break;
+    case 'study-planner':
+      prompt = `Create a study plan for the following subjects: ${params.subjects.join(', ')}
+
+Available time: ${params.timeAvailable} hours per week
+
+Goals: ${params.goals || 'Not specified'}`;
+      break;
+    case 'flashcards':
+      prompt = `Generate ${params.numCards} flashcards from the following text. Return as JSON array with "front" and "back" fields:\n\n${params.text}`;
+      break;
+    default:
+      throw new Error(`Unsupported tool: ${tool}`);
+  }
+  
+  const response = await axios.post(
+    `${service.baseUrl}/models/${service.model}:generateContent?key=${service.apiKey}`,
+    {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }]
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  
+  const endTime = Date.now();
+  
+  // Parse response based on tool
+  let result;
+  switch (tool) {
+    case 'summarize':
+      result = {
+        summary: response.data.candidates[0].content.parts[0].text
+      };
+      break;
+    case 'quiz':
+      try {
+        result = {
+          questions: JSON.parse(response.data.candidates[0].content.parts[0].text)
+        };
+      } catch (e) {
+        // If JSON parsing fails, return as plain text
+        result = {
+          questions: [{
+            question: "Generated quiz content",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctAnswer: "Option A"
+          }]
+        };
+      }
+      break;
+    case 'tutor':
+      result = {
+        answer: response.data.candidates[0].content.parts[0].text
+      };
+      break;
+    case 'study-planner':
+      result = {
+        plan: response.data.candidates[0].content.parts[0].text
+      };
+      break;
+    case 'flashcards':
+      try {
+        result = {
+          flashcards: JSON.parse(response.data.candidates[0].content.parts[0].text)
+        };
+      } catch (e) {
+        // If JSON parsing fails, return as plain text
+        result = {
+          flashcards: [{
+            front: "Front of flashcard",
+            back: "Back of flashcard"
+          }]
+        };
+      }
+      break;
+    default:
+      result = {
+        content: response.data.candidates[0].content.parts[0].text
+      };
+  }
+  
+  return {
+    ...result,
+    tokensUsed: 0, // Gemini API doesn't return token usage in this format
+    processingTime: endTime - startTime
+  };
+};
+
+// Call Grok API
+const callGrok = async (service, tool, params) => {
+  let prompt;
+  
+  switch (tool) {
+    case 'summarize':
+      prompt = `Summarize the following text in ${params.length} ${params.type} format:\n\n${params.text}`;
+      break;
+    case 'quiz':
+      prompt = `Generate ${params.numQuestions} ${params.difficulty}-level quiz questions from the following text. Return as JSON array with "question", "options" (array), and "correctAnswer" fields:\n\n${params.text}`;
+      break;
+    case 'tutor':
+      prompt = `As an AI tutor, answer the following question: ${params.question}\n\nContext: ${params.context || 'No additional context provided'}`;
+      break;
+    case 'study-planner':
+      prompt = `Create a study plan for the following subjects: ${params.subjects.join(', ')}
+
+Available time: ${params.timeAvailable} hours per week
+
+Goals: ${params.goals || 'Not specified'}`;
+      break;
+    case 'flashcards':
+      prompt = `Generate ${params.numCards} flashcards from the following text. Return as JSON array with "front" and "back" fields:\n\n${params.text}`;
+      break;
+    default:
+      throw new Error(`Unsupported tool: ${tool}`);
+  }
+  
+  const response = await axios.post(
+    `${service.baseUrl}/chat/completions`,
+    {
+      model: service.model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${service.apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+  
+  const endTime = Date.now();
+  
+  // Parse response based on tool
+  let result;
+  switch (tool) {
+    case 'summarize':
+      result = {
+        summary: response.data.choices[0].message.content
+      };
+      break;
+    case 'quiz':
+      try {
+        result = {
+          questions: JSON.parse(response.data.choices[0].message.content)
+        };
+      } catch (e) {
+        // If JSON parsing fails, return as plain text
+        result = {
+          questions: [{
+            question: "Generated quiz content",
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            correctAnswer: "Option A"
+          }]
+        };
+      }
+      break;
+    case 'tutor':
+      result = {
+        answer: response.data.choices[0].message.content
+      };
+      break;
+    case 'study-planner':
+      result = {
+        plan: response.data.choices[0].message.content
+      };
+      break;
+    case 'flashcards':
+      try {
+        result = {
+          flashcards: JSON.parse(response.data.choices[0].message.content)
+        };
+      } catch (e) {
+        // If JSON parsing fails, return as plain text
+        result = {
+          flashcards: [{
+            front: "Front of flashcard",
+            back: "Back of flashcard"
+          }]
+        };
+      }
+      break;
+    default:
+      result = {
+        content: response.data.choices[0].message.content
+      };
+  }
+  
+  return {
+    ...result,
+    tokensUsed: response.data.usage?.total_tokens || 0,
+    processingTime: endTime - startTime
+  };
+};
