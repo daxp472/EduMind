@@ -77,6 +77,9 @@ const UserSchema = new mongoose.Schema({
   studentVerificationRequestedAt: {
     type: Date
   },
+  studentPlanExpiresAt: {
+    type: Date
+  },
   avatar: {
     type: String
   },
@@ -231,6 +234,21 @@ UserSchema.methods.hasExceededUsageLimit = function() {
 // Reset usage count if needed
 UserSchema.methods.resetUsageIfNeeded = function() {
   if (Date.now() >= this.resetUsageAt) {
+    // Check if this is a student plan that has expired
+    if (this.subscriptionPlan === 'student' && this.studentPlanExpiresAt && Date.now() >= this.studentPlanExpiresAt) {
+      // Student plan has expired, downgrade to free plan
+      this.subscriptionPlan = 'free';
+      this.usageLimit = process.env.FREE_PLAN_LIMIT || 100;
+    }
+    
+    // Check if this is a Pro plan that hasn't been renewed
+    if (this.subscriptionPlan === 'pro') {
+      // For Pro plan, we could implement payment checking logic here
+      // For now, we'll just downgrade to free plan as requested
+      this.subscriptionPlan = 'free';
+      this.usageLimit = process.env.FREE_PLAN_LIMIT || 100;
+    }
+    
     this.usageCount = 0;
     this.resetUsageAt = new Date(new Date().setDate(new Date().getDate() + 30));
     return true;

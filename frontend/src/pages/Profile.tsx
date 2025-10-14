@@ -1,25 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, Zap, Clock, Loader, GraduationCap, TrendingUp } from 'lucide-react';
+import { Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, Zap, Clock, Loader, GraduationCap, TrendingUp, UserCheck, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsAPI, academicAPI, achievementsAPI, activityAPI, studySessionsAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 // Define types for our data
-interface AcademicInfo {
-  institution?: string;
-  major?: string;
-  degree?: string;
-  year?: string;
-  gpa?: number;
-  location?: string;
-  bio?: string;
-  profileImage?: string;
-  coverImage?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 interface Achievement {
   id: string;
   title: string;
@@ -84,6 +71,7 @@ interface UserProfileData {
 
 const Profile = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileData>({
     name: user?.name || '',
@@ -94,13 +82,13 @@ const Profile = () => {
     major: 'Computer Science',
     joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'January 2024'
   });
-  const [academicInfo, setAcademicInfo] = useState<AcademicInfo | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [studyStats, setStudyStats] = useState<StudyStats | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Student verification state - now handled in separate page
 
   // Fetch all user data
   useEffect(() => {
@@ -131,7 +119,6 @@ const Profile = () => {
           analyticsAPI.getPerformanceInsights(token)
         ]);
 
-        setAcademicInfo(academicResponse.data);
         setAchievements(achievementsResponse.data);
         setRecentActivity(activityResponse.data);
         setStudyStats(studyStatsResponse.data);
@@ -360,8 +347,8 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Edit Button */}
-            <div className="flex space-x-3">
+            {/* Action Buttons */}
+            <div className="flex flex-col space-y-3">
               {isEditing ? (
                 <>
                   <button
@@ -378,13 +365,22 @@ const Profile = () => {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  <span>Edit Profile</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </button>
+                  <button
+                    onClick={() => navigate('/pricing')}
+                    className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-indigo-700 transition-colors"
+                  >
+                    <Zap className="h-4 w-4" />
+                    <span>Upgrade Plan</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -438,6 +434,33 @@ const Profile = () => {
                 <div className="text-sm">
                   <span className="font-medium">Usage Limit:</span> {user?.usageLimit || 0} requests/month
                 </div>
+                
+                {/* Student Verification Status */}
+                {user?.subscriptionPlan !== 'student' && user?.studentVerificationStatus && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-2">Student Verification</h4>
+                    <div className="flex items-center space-x-2">
+                      {user.studentVerificationStatus === 'pending' && (
+                        <>
+                          <Clock className="h-4 w-4 text-yellow-500" />
+                          <span className="text-yellow-700">Verification Pending</span>
+                        </>
+                      )}
+                      {user.studentVerificationStatus === 'approved' && (
+                        <>
+                          <UserCheck className="h-4 w-4 text-green-500" />
+                          <span className="text-green-700">Verified Student</span>
+                        </>
+                      )}
+                      {user.studentVerificationStatus === 'rejected' && (
+                        <>
+                          <X className="h-4 w-4 text-red-500" />
+                          <span className="text-red-700">Verification Rejected</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -458,6 +481,77 @@ const Profile = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Student Verification Section (Only for non-student users) */}
+        {user?.subscriptionPlan !== 'student' && user?.subscriptionPlan !== 'pro' && user?.subscriptionPlan !== 'ultra' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="bg-white rounded-2xl shadow-xl p-8 mb-8"
+          >
+            <div className="flex items-center space-x-3 mb-6">
+              <UserCheck className="h-6 w-6 text-blue-600" />
+              <h2 className="text-2xl font-bold text-gray-900">Student Verification</h2>
+            </div>
+            
+            {user?.studentVerificationRequestedAt ? (
+              user?.studentVerificationStatus === 'pending' ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <Clock className="h-5 w-5 text-yellow-600" />
+                    <h3 className="font-semibold text-yellow-800">Verification Pending</h3>
+                  </div>
+                  <p className="text-yellow-700 mb-4">
+                    Your student verification is currently under review. Admin will review your request and approve or reject it soon.
+                  </p>
+                  <p className="text-sm text-yellow-600">
+                    Request submitted on: {user.studentVerificationRequestedAt ? new Date(user.studentVerificationRequestedAt).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+              ) : user?.studentVerificationStatus === 'approved' ? (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold text-green-800">Student Verified</h3>
+                  </div>
+                  <p className="text-green-700">
+                    Your student verification has been approved! You now have access to the Student plan features.
+                  </p>
+                </div>
+              ) : user?.studentVerificationStatus === 'rejected' ? (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <X className="h-5 w-5 text-red-600" />
+                    <h3 className="font-semibold text-red-800">Verification Rejected</h3>
+                  </div>
+                  <p className="text-red-700 mb-4">
+                    Your student verification request was rejected. Please try again with clearer images.
+                  </p>
+                  <button
+                    onClick={() => navigate('/student-verification')}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : null
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-6">
+                  Upgrade to the Student plan by verifying your student status. Get 6 months of free access!
+                </p>
+                <button
+                  onClick={() => navigate('/student-verification')}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all flex items-center mx-auto"
+                >
+                  <UserCheck className="h-5 w-5 mr-2" />
+                  Apply for Student Verification
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Stats Cards */}
         <motion.div

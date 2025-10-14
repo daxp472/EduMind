@@ -96,6 +96,21 @@ npm run dev
 npm start
 ```
 
+### Subscription Management
+
+The system automatically checks for expired subscriptions and downgrades users as needed. To run this check manually:
+
+```bash
+npm run check-subscriptions
+```
+
+For production environments, set up a cron job to run this script daily:
+
+```bash
+# Add to crontab (runs daily at 2:00 AM)
+0 2 * * * cd /path/to/edumind-backend && npm run check-subscriptions
+```
+
 ## 📡 API Endpoints
 
 ### Authentication

@@ -116,8 +116,8 @@ const StudentVerification = () => {
               Student Verification
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              To upgrade to the Student plan, please upload a clear photo of your student ID card 
-              and a selfie holding your ID card.
+              Apply for the Student plan and get 6 months of free access! Please upload a clear photo of your student ID card 
+              and a selfie holding your ID card for verification.
             </p>
           </div>
 

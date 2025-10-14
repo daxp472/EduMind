@@ -503,12 +503,17 @@ exports.getPendingStudentVerifications = async (req, res, next) => {
 // @access  Private/Admin
 exports.approveStudentVerification = async (req, res, next) => {
   try {
+    // Set student plan expiration to 6 months from now
+    const studentPlanExpiresAt = new Date();
+    studentPlanExpiresAt.setMonth(studentPlanExpiresAt.getMonth() + 6);
+    
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       {
         studentVerificationStatus: 'approved',
         subscriptionPlan: 'student',
-        usageLimit: process.env.STUDENT_PLAN_LIMIT || 1000
+        usageLimit: process.env.STUDENT_PLAN_LIMIT || 1000,
+        resetUsageAt: studentPlanExpiresAt
       },
       {
         new: true,

@@ -1,9 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, X, Zap, Crown, Rocket, Star } from 'lucide-react';
+import { Check, X, Zap, Crown, Rocket, Star, IndianRupee, DollarSign } from 'lucide-react';
 
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [currency, setCurrency] = useState<'USD' | 'INR'>('USD');
+  const navigate = useNavigate();
+
+  // Exchange rate: 1 USD = 83 INR (approximate)
+  const exchangeRate = 83;
+
+  const convertPrice = (price: number) => {
+    if (currency === 'INR') {
+      return Math.round(price * exchangeRate);
+    }
+    return price;
+  };
 
   const plans = [
     {
@@ -29,8 +42,8 @@ const Pricing = () => {
     {
       name: 'Student',
       icon: Zap,
-      price: { monthly: 9.99, annual: 7.99 },
-      description: 'Ideal for individual learners',
+      price: { monthly: 0, annual: 0 },
+      description: 'Free for 6 months after verification',
       features: [
         'Unlimited AI summaries',
         'Unlimited quiz generation',
@@ -38,7 +51,9 @@ const Pricing = () => {
         'AI tutor chat support',
         'Study schedule optimization',
         'Note organization tools',
-        'Priority email support'
+        'Priority email support',
+        'Student verification required',
+        'Free for 6 months after approval'
       ],
       limitations: [],
       popular: true,
@@ -57,17 +72,18 @@ const Pricing = () => {
         'Export capabilities',
         'Integration with LMS',
         'Phone support',
-        'Custom AI training'
+        'Custom AI training',
+        'Auto-renewal option'
       ],
       limitations: [],
       popular: false,
       color: 'from-purple-500 to-purple-600'
     },
     {
-      name: 'Institution',
+      name: 'Ultra',
       icon: Rocket,
-      price: { monthly: 'Custom', annual: 'Custom' },
-      description: 'For schools and organizations',
+      price: { monthly: 29.99, annual: 23.99 },
+      description: 'For institutions and power users',
       features: [
         'Everything in Pro',
         'Bulk user management',
@@ -91,7 +107,7 @@ const Pricing = () => {
     },
     {
       question: 'Is there a student discount?',
-      answer: 'Yes! Students with valid .edu email addresses get 50% off any paid plan. Contact support for verification.'
+      answer: 'Yes! Students with valid verification get free access to the Student plan for 6 months. Simply apply for the Student plan and upload your ID card and selfie for verification.'
     },
     {
       question: 'What payment methods do you accept?',
@@ -100,6 +116,14 @@ const Pricing = () => {
     {
       question: 'Is there a money-back guarantee?',
       answer: 'Yes, we offer a 30-day money-back guarantee on all paid plans. No questions asked.'
+    },
+    {
+      question: 'How does the Student verification work?',
+      answer: 'Students need to upload their ID card and a selfie for verification. Once approved, they get 6 months of Student plan access.'
+    },
+    {
+      question: 'What happens if I don\'t renew my Pro plan?',
+      answer: 'If you don\'t renew your Pro plan, it will be downgraded to the Free plan at the end of the billing period.'
     }
   ];
 
@@ -123,6 +147,28 @@ const Pricing = () => {
               Unlock the full potential of AI-powered learning with plans designed 
               for every student, educator, and institution.
             </p>
+
+            {/* Currency Toggle */}
+            <div className="flex items-center justify-center space-x-4 mb-6">
+              <span className={`text-sm font-medium ${currency === 'USD' ? 'text-gray-900' : 'text-gray-500'}`}>
+                USD
+              </span>
+              <button
+                onClick={() => setCurrency(currency === 'USD' ? 'INR' : 'USD')}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  currency === 'INR' ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    currency === 'INR' ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-medium ${currency === 'INR' ? 'text-gray-900' : 'text-gray-500'}`}>
+                INR
+              </span>
+            </div>
 
             {/* Billing Toggle */}
             <div className="flex items-center justify-center space-x-4 mb-12">
@@ -185,7 +231,17 @@ const Pricing = () => {
                   <div className="text-4xl font-bold text-gray-900 mb-2">
                     {typeof plan.price.monthly === 'number' ? (
                       <>
-                        ${isAnnual ? plan.price.annual : plan.price.monthly}
+                        {currency === 'INR' ? (
+                          <>
+                            <IndianRupee className="inline h-6 w-6" />
+                            {convertPrice(isAnnual ? plan.price.annual : plan.price.monthly)}
+                          </>
+                        ) : (
+                          <>
+                            <DollarSign className="inline h-6 w-6" />
+                            {(isAnnual ? plan.price.annual : plan.price.monthly).toFixed(2)}
+                          </>
+                        )}
                         <span className="text-lg font-medium text-gray-500">/month</span>
                       </>
                     ) : (
@@ -194,7 +250,7 @@ const Pricing = () => {
                   </div>
                   {isAnnual && typeof plan.price.annual === 'number' && plan.price.annual > 0 && (
                     <p className="text-sm text-gray-500">
-                      Billed annually (${plan.price.annual * 12}/year)
+                      Billed annually ({currency === 'INR' ? '₹' : '$'}{convertPrice(plan.price.annual * 12)}/year)
                     </p>
                   )}
                 </div>
@@ -215,6 +271,15 @@ const Pricing = () => {
                 </div>
 
                 <button
+                  onClick={() => {
+                    if (plan.name === 'Student') {
+                      navigate('/student-verification');
+                    } else {
+                      // For other plans, you might want to implement payment flow
+                      // For now, we'll just show an alert
+                      alert(`Starting ${plan.name} plan`);
+                    }
+                  }}
                   className={`w-full py-3 px-6 rounded-xl font-semibold transition-all transform hover:scale-105 ${
                     plan.popular
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
@@ -222,7 +287,7 @@ const Pricing = () => {
                   }`}
                 >
                   {plan.name === 'Free' ? 'Get Started Free' : 
-                   plan.name === 'Institution' ? 'Contact Sales' : 
+                   plan.name === 'Student' ? 'Apply for Student Plan' :
                    'Start Free Trial'}
                 </button>
               </motion.div>
