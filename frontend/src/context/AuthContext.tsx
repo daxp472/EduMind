@@ -62,6 +62,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authAPI.login({ email, password });
       
+      // Check if email is verified
+      if (!response.data.emailVerified) {
+        throw new Error('Please verify your email before logging in. Check your inbox for the verification email.');
+      }
+      
       setUser(response.data);
       setAuthToken(response.token);
       
@@ -84,13 +89,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authAPI.register({ name, email, password });
       
-      setUser(response.data);
-      setAuthToken(response.token);
-      
-      localStorage.setItem('edumind_user', JSON.stringify(response.data));
-      localStorage.setItem('edumind_token', response.token);
-      
+      // For signup, we don't automatically log in the user
+      // Instead, we show a message that they need to verify their email
       setIsLoading(false);
+      
+      // Return the response so the component can handle the UI
+      return response;
     } catch (error: unknown) {
       setIsLoading(false);
       if (error instanceof Error) {

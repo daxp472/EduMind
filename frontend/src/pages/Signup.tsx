@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Brain, Check } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Brain, Check, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -14,6 +14,8 @@ const Signup = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const { signup, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -44,10 +46,13 @@ const Signup = () => {
 
     try {
       await signup(formData.name, formData.email, formData.password);
-      toast.success('Account created successfully! Welcome to EduMind');
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error('Signup failed. Please try again.');
+      setIsRegistered(true);
+      // The response type from signup is void, so we use a generic success message
+      setRegistrationMessage('Account created successfully! Please check your email for verification.');
+      toast.success('Account created successfully! Please check your email for verification.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -58,6 +63,63 @@ const Signup = () => {
     'Progress tracking & analytics',
     '24/7 AI tutor support'
   ];
+
+  if (isRegistered) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-md w-full space-y-8"
+        >
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
+                <Mail className="h-12 w-12 text-white" />
+              </div>
+            </div>
+            
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Verify Your Email
+            </h2>
+            
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <div className="text-center">
+                <Check className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">{registrationMessage}</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Please check your email inbox (and spam folder) for a verification link.
+                </p>
+                
+                <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                    <p className="text-sm text-blue-700">
+                      Didn't receive the email? Check your spam folder or{' '}
+                      <button 
+                        onClick={() => setIsRegistered(false)}
+                        className="font-medium text-blue-600 hover:text-blue-800"
+                      >
+                        try again
+                      </button>
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => navigate('/login')}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                >
+                  Go to Login
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

@@ -22,7 +22,7 @@ import Help from './pages/Help';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 
-// AI Tools Pages
+import EmailVerification from './pages/EmailVerification';
 import AISummarizer from './pages/ai-tools/AISummarizer';
 import QuizGenerator from './pages/ai-tools/QuizGenerator';
 import AITutor from './pages/ai-tools/AITutor';
@@ -50,18 +50,18 @@ import PerformanceInsights from './pages/analytics/PerformanceInsights';
 import LearningPaths from './pages/analytics/LearningPaths';
 
 // Community Pages
-// import StudyCommunity from './pages/community/StudyCommunity';
-// import StudyBuddies from './pages/community/StudyBuddies';
-// import DiscussionForums from './pages/community/DiscussionForums';
-// import StudyEvents from './pages/community/StudyEvents';
-// import Leaderboards from './pages/community/Leaderboards';
+import StudyCommunity from './pages/community/StudyCommunity';
+import StudyBuddies from './pages/community/StudyBuddies';
+import DiscussionForums from './pages/community/DiscussionForums';
+import StudyEvents from './pages/community/StudyEvents';
+import Leaderboards from './pages/community/Leaderboards';
 
 // Resources Pages
-// import Library from './pages/resources/Library';
-// import Courses from './pages/resources/Courses';
-// import Tutorials from './pages/resources/Tutorials';
-// import Templates from './pages/resources/Templates';
-// import AIModels from './pages/resources/AIModels';
+import Library from './pages/resources/Library';
+import Courses from './pages/resources/Courses';
+import Tutorials from './pages/resources/Tutorials';
+import Templates from './pages/resources/Templates';
+import AIModels from './pages/resources/AIModels';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
@@ -94,6 +94,7 @@ function AnimatedRoutes() {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/help" element={<Help />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
               
               {/* Protected Routes */}
               <Route path="/dashboard" element={
@@ -224,7 +225,7 @@ function AnimatedRoutes() {
               } />
 
               {/* Community Routes */}
-              {/* <Route path="/community" element={
+              <Route path="/community" element={
                 <ProtectedRoute>
                   <StudyCommunity />
                 </ProtectedRoute>
@@ -248,10 +249,10 @@ function AnimatedRoutes() {
                 <ProtectedRoute>
                   <Leaderboards />
                 </ProtectedRoute>
-              } /> */}
+              } />
 
               {/* Resources Routes */}
-              {/* <Route path="/resources/library" element={
+              <Route path="/resources/library" element={
                 <ProtectedRoute>
                   <Library />
                 </ProtectedRoute>
@@ -275,7 +276,7 @@ function AnimatedRoutes() {
                 <ProtectedRoute>
                   <AIModels />
                 </ProtectedRoute>
-              } /> */}
+              } />
               
 
               <Route path="*" element={<Navigate to="/" replace />} />

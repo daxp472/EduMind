@@ -20,8 +20,8 @@ exports.register = async (req, res, next) => {
     const verificationToken = user.getEmailVerificationToken();
     await user.save({ validateBeforeSave: false });
 
-    // Create verification URL
-    const verificationURL = `${req.protocol}://${req.get('host')}/api/auth/verifyemail/${verificationToken}`;
+    // Create verification URL pointing to frontend
+    const verificationURL = `http://localhost:5173/verify-email?token=${verificationToken}`;
 
     // HTML message
     const message = `
@@ -318,14 +318,24 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 // @desc    Verify email
-// @route   GET /api/auth/verifyemail/:verificationtoken
+// @route   GET /api/auth/verifyemail
 // @access  Public
 exports.verifyEmail = async (req, res, next) => {
   try {
+    // Get token from query parameters
+    const { token: verificationtoken } = req.query;
+    
+    if (!verificationtoken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required'
+      });
+    }
+
     // Get hashed token
     const emailVerificationToken = crypto
       .createHash('sha256')
-      .update(req.params.verificationtoken)
+      .update(verificationtoken)
       .digest('hex');
 
     const user = await User.findOne({

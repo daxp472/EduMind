@@ -33,8 +33,14 @@ const Login = () => {
       await login(formData.email, formData.password);
       toast.success('Welcome back! Login successful');
       navigate('/dashboard');
-    } catch (error) {
-      toast.error('Login failed. Please try again.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      // Check if the error is related to email verification
+      if (errorMessage.includes('verify your email')) {
+        toast.error(errorMessage, { duration: 8000 });
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 

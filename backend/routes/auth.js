@@ -20,6 +20,7 @@ router.put('/updatedetails', protect, updateDetails);
 router.put('/updatepassword', protect, updatePassword);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
-router.get('/verifyemail/:verificationtoken', verifyEmail);
+router.get('/verifyemail', verifyEmail);
+
 
 module.exports = router;
