@@ -50,6 +50,28 @@ const Navbar = () => {
       ]
     },
     {
+      name: 'Community',
+      path: '/community',
+      dropdown: [
+        { name: 'Study Community', path: '/community' },
+        { name: 'Study Buddies', path: '/community/buddies' },
+        { name: 'Discussion Forums', path: '/community/forums' },
+        { name: 'Study Events', path: '/community/events' },
+        { name: 'Leaderboards', path: '/community/leaderboards' },
+      ]
+    },
+    {
+      name: 'Resources',
+      path: '/resources/library',
+      dropdown: [
+        { name: 'Library', path: '/resources/library' },
+        { name: 'Courses', path: '/resources/courses' },
+        { name: 'Tutorials', path: '/resources/tutorials' },
+        { name: 'Templates', path: '/resources/templates' },
+        { name: 'AI Models', path: '/resources/ai-models' },
+      ]
+    },
+    {
       name: 'Analytics',
       path: '/analytics/learning',
       dropdown: [

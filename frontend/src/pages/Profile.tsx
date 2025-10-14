@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, TrendingUp } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, TrendingUp, Zap, Crown, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,28 @@ const Profile = () => {
     major: 'Computer Science',
     joinedDate: 'January 2024'
   });
+
+  // Mock usage data - in a real app, this would come from the backend
+  const usageData = {
+    currentPlan: user?.subscriptionPlan || 'free',
+    usageCount: user?.usageCount || 25,
+    usageLimit: user?.usageLimit || 100,
+    resetDate: 'April 15, 2024',
+    aiRequests: [
+      { type: 'Summary', count: 12 },
+      { type: 'Quiz', count: 8 },
+      { type: 'Tutor', count: 5 },
+      { type: 'Flashcards', count: 3 }
+    ]
+  };
+
+  const planDetails = {
+    guest: { name: 'Guest', color: 'gray', limit: 5, features: ['Basic AI tools', 'Limited usage'] },
+    free: { name: 'Free', color: 'blue', limit: 100, features: ['All AI tools', 'Basic analytics', 'Community access'] },
+    student: { name: 'Student', color: 'green', limit: 1000, features: ['All Free features', 'Higher limits', 'Priority support'] },
+    pro: { name: 'Pro', color: 'purple', limit: 5000, features: ['All Student features', 'Advanced analytics', 'Custom models'] },
+    ultra: { name: 'Ultra', color: 'gold', limit: 20000, features: ['All Pro features', 'Unlimited access', 'Dedicated support'] }
+  };
 
   const stats = [
     {
@@ -107,6 +129,21 @@ const Profile = () => {
     });
   };
 
+  const getPlanColor = (plan: string) => {
+    switch (plan) {
+      case 'guest': return 'bg-gray-500';
+      case 'free': return 'bg-blue-500';
+      case 'student': return 'bg-green-500';
+      case 'pro': return 'bg-purple-500';
+      case 'ultra': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getUsagePercentage = () => {
+    return Math.min(100, (usageData.usageCount / usageData.usageLimit) * 100);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -157,7 +194,12 @@ const Profile = () => {
                 </div>
               ) : (
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{profileData.name}</h1>
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h1 className="text-3xl font-bold text-gray-900">{profileData.name}</h1>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getPlanColor(usageData.currentPlan)}`}>
+                      {planDetails[usageData.currentPlan as keyof typeof planDetails]?.name || 'Free'} Plan
+                    </span>
+                  </div>
                   <p className="text-gray-600 mb-4">{profileData.bio}</p>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                     <div className="flex items-center space-x-2">
@@ -207,11 +249,76 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
+        {/* Usage Analytics */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
+          className="bg-white rounded-2xl shadow-xl p-8 mb-8"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 md:mb-0">Usage Analytics</h2>
+            <div className="flex items-center space-x-2">
+              <Zap className="h-5 w-5 text-yellow-500" />
+              <span className="font-medium">
+                {usageData.usageCount} / {usageData.usageLimit} requests used
+              </span>
+            </div>
+          </div>
+
+          {/* Usage Progress Bar */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Monthly Usage</span>
+              <span>Resets on {usageData.resetDate}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${getUsagePercentage()}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Plan Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">Current Plan</h3>
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className={`w-3 h-3 rounded-full ${getPlanColor(usageData.currentPlan)}`}></div>
+                  <span className="font-bold text-lg">
+                    {planDetails[usageData.currentPlan as keyof typeof planDetails]?.name || 'Free'} Plan
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm mb-3">
+                  {planDetails[usageData.currentPlan as keyof typeof planDetails]?.features.join(', ')}
+                </p>
+                <div className="text-sm">
+                  <span className="font-medium">Usage Limit:</span> {usageData.usageLimit} requests/month
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3">AI Request Distribution</h3>
+              <div className="space-y-3">
+                {usageData.aiRequests.map((request, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-gray-600">{request.type}</span>
+                    <span className="font-medium">{request.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           {stats.map((stat, index) => (
@@ -232,7 +339,7 @@ const Profile = () => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Achievements</h2>
@@ -254,7 +361,7 @@ const Profile = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
@@ -286,7 +393,7 @@ const Profile = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
           className="bg-white rounded-2xl shadow-lg p-8 mt-8"
         >
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Academic Information</h2>

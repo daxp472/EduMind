@@ -40,10 +40,10 @@ const UserSchema = new mongoose.Schema({
     default: function() {
       switch(this.subscriptionPlan) {
         case 'guest': return process.env.GUEST_PLAN_LIMIT || 5;
-        case 'free': return process.env.FREE_PLAN_LIMIT || 50;
-        case 'student': return process.env.STUDENT_PLAN_LIMIT || 500;
-        case 'pro': return process.env.PRO_PLAN_LIMIT || 2000;
-        case 'ultra': return process.env.ULTRA_PLAN_LIMIT || 10000;
+        case 'free': return process.env.FREE_PLAN_LIMIT || 100;
+        case 'student': return process.env.STUDENT_PLAN_LIMIT || 1000;
+        case 'pro': return process.env.PRO_PLAN_LIMIT || 5000;
+        case 'ultra': return process.env.ULTRA_PLAN_LIMIT || 20000;
         default: return process.env.GUEST_PLAN_LIMIT || 5;
       }
     }
@@ -62,6 +62,21 @@ const UserSchema = new mongoose.Schema({
   },
   emailVerificationToken: String,
   emailVerificationExpires: Date,
+  // Student verification fields
+  studentIdCard: {
+    type: String
+  },
+  studentIdCardSelfie: {
+    type: String
+  },
+  studentVerificationStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  studentVerificationRequestedAt: {
+    type: Date
+  },
   avatar: {
     type: String
   },

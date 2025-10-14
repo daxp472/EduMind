@@ -21,8 +21,10 @@ import Terms from './pages/Terms';
 import Help from './pages/Help';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-
 import EmailVerification from './pages/EmailVerification';
+import StudentVerification from './pages/StudentVerification';
+
+// AI Tools Pages
 import AISummarizer from './pages/ai-tools/AISummarizer';
 import QuizGenerator from './pages/ai-tools/QuizGenerator';
 import AITutor from './pages/ai-tools/AITutor';
@@ -63,6 +65,11 @@ import Tutorials from './pages/resources/Tutorials';
 import Templates from './pages/resources/Templates';
 import AIModels from './pages/resources/AIModels';
 
+// Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProfile from './pages/admin/AdminProfile';
+
 import ProtectedRoute from './components/ProtectedRoute';
 import './index.css';
 
@@ -96,6 +103,11 @@ function AnimatedRoutes() {
               <Route path="/help" element={<Help />} />
               <Route path="/verify-email" element={<EmailVerification />} />
               
+              {/* Admin Routes */}
+              <Route path="/admin/auth" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/profile" element={<AdminProfile />} />
+              
               {/* Protected Routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute>
@@ -110,6 +122,11 @@ function AnimatedRoutes() {
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/student-verification" element={
+                <ProtectedRoute>
+                  <StudentVerification />
                 </ProtectedRoute>
               } />
               
@@ -277,7 +294,6 @@ function AnimatedRoutes() {
                   <AIModels />
                 </ProtectedRoute>
               } />
-              
 
               <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
