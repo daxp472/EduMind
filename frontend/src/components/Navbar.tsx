@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Brain, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, Brain, User, Settings, LogOut, Home, BookOpen, Users, BarChart3, FileText, Target, Calendar, MessageSquare, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -18,74 +27,83 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: 'Home', path: '/home' },
-    { name: 'Features', path: '/features' },
+    { name: 'Home', path: '/home', icon: Home },
+    { name: 'Features', path: '/features', icon: Target },
     {
       name: 'AI Tools',
       path: '/ai-tools/summarizer',
+      icon: Brain,
       dropdown: [
-        { name: 'AI Summarizer', path: '/ai-tools/summarizer' },
-        { name: 'Quiz Generator', path: '/ai-tools/quiz-generator' },
-        { name: 'AI Tutor', path: '/ai-tools/tutor' },
-        { name: 'Study Planner', path: '/ai-tools/study-planner' },
-        { name: 'Flashcard Generator', path: '/ai-tools/flashcards' },
-        { name: 'Essay Analyzer', path: '/ai-tools/essay-analyzer' },
-        { name: 'Concept Mapper', path: '/ai-tools/concept-mapper' },
-        { name: 'Language Tutor', path: '/ai-tools/language-tutor' },
-        { name: 'Math Solver', path: '/ai-tools/math-solver' },
-        { name: 'Research Assistant', path: '/ai-tools/research-assistant' },
+        { name: 'AI Summarizer', path: '/ai-tools/summarizer', icon: FileText },
+        { name: 'Quiz Generator', path: '/ai-tools/quiz-generator', icon: Target },
+        { name: 'AI Tutor', path: '/ai-tools/tutor', icon: MessageSquare },
+        { name: 'Study Planner', path: '/ai-tools/study-planner', icon: Calendar },
+        { name: 'Flashcard Generator', path: '/ai-tools/flashcards', icon: BookOpen },
+        { name: 'Essay Analyzer', path: '/ai-tools/essay-analyzer', icon: FileText },
+        { name: 'Concept Mapper', path: '/ai-tools/concept-mapper', icon: Brain },
+        { name: 'Language Tutor', path: '/ai-tools/language-tutor', icon: MessageSquare },
+        { name: 'Math Solver', path: '/ai-tools/math-solver', icon: Target },
+        { name: 'Research Assistant', path: '/ai-tools/research-assistant', icon: Search },
       ]
     },
     {
       name: 'Study',
       path: '/study/rooms',
+      icon: BookOpen,
       dropdown: [
-        { name: 'Study Rooms', path: '/study/rooms' },
-        { name: 'Study Groups', path: '/study/groups' },
-        { name: 'Study Timer', path: '/study/timer' },
-        { name: 'Study Goals', path: '/study/goals' },
-        { name: 'Calendar', path: '/study/calendar' },
-        { name: 'Materials', path: '/study/materials' },
-        { name: 'Notes', path: '/study/notes' },
+        { name: 'Study Rooms', path: '/study/rooms', icon: Home },
+        { name: 'Study Groups', path: '/study/groups', icon: Users },
+        { name: 'Study Timer', path: '/study/timer', icon: Target },
+        { name: 'Study Goals', path: '/study/goals', icon: Target },
+        { name: 'Calendar', path: '/study/calendar', icon: Calendar },
+        { name: 'Materials', path: '/study/materials', icon: FileText },
+        { name: 'Notes', path: '/study/notes', icon: FileText },
       ]
     },
     {
       name: 'Community',
       path: '/community',
+      icon: Users,
       dropdown: [
-        { name: 'Study Community', path: '/community' },
-        { name: 'Study Buddies', path: '/community/buddies' },
-        { name: 'Discussion Forums', path: '/community/forums' },
-        { name: 'Study Events', path: '/community/events' },
-        { name: 'Leaderboards', path: '/community/leaderboards' },
+        { name: 'Study Community', path: '/community', icon: Users },
+        { name: 'Study Buddies', path: '/community/buddies', icon: Users },
+        { name: 'Discussion Forums', path: '/community/forums', icon: MessageSquare },
+        { name: 'Study Events', path: '/community/events', icon: Calendar },
+        { name: 'Leaderboards', path: '/community/leaderboards', icon: BarChart3 },
       ]
     },
     {
       name: 'Resources',
       path: '/resources/library',
+      icon: FileText,
       dropdown: [
-        { name: 'Library', path: '/resources/library' },
-        { name: 'Courses', path: '/resources/courses' },
-        { name: 'Tutorials', path: '/resources/tutorials' },
-        { name: 'Templates', path: '/resources/templates' },
-        { name: 'AI Models', path: '/resources/ai-models' },
+        { name: 'Library', path: '/resources/library', icon: FileText },
+        { name: 'Courses', path: '/resources/courses', icon: BookOpen },
+        { name: 'Tutorials', path: '/resources/tutorials', icon: Target },
+        { name: 'Templates', path: '/resources/templates', icon: FileText },
+        { name: 'AI Models', path: '/resources/ai-models', icon: Brain },
       ]
     },
     {
       name: 'Analytics',
       path: '/analytics/learning',
+      icon: BarChart3,
       dropdown: [
-        { name: 'Learning Analytics', path: '/analytics/learning' },
-        { name: 'Progress Reports', path: '/analytics/reports' },
-        { name: 'Performance Insights', path: '/analytics/insights' },
-        { name: 'Learning Paths', path: '/analytics/learning-paths' },
+        { name: 'Learning Analytics', path: '/analytics/learning', icon: BarChart3 },
+        { name: 'Progress Reports', path: '/analytics/reports', icon: BarChart3 },
+        { name: 'Performance Insights', path: '/analytics/insights', icon: BarChart3 },
+        { name: 'Learning Paths', path: '/analytics/learning-paths', icon: BarChart3 },
       ]
     },
-    { name: 'Pricing', path: '/pricing' },
+    { name: 'Pricing', path: '/pricing', icon: Target },
   ];
 
   return (
-    <nav className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-md border-b border-blue-100">
+    <nav className={`fixed w-full top-0 z-50 transition-all duration-300 ${
+      isScrolled 
+        ? 'bg-white/90 backdrop-blur-md border-b border-blue-100 shadow-sm' 
+        : 'bg-white/80 backdrop-blur-md border-b border-blue-100'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -120,8 +138,11 @@ const Navbar = () => {
                       : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                   }`}
                 >
+                  <item.icon className="h-4 w-4" />
                   <span>{item.name}</span>
-                  {item.dropdown && <ChevronDown className="h-4 w-4" />}
+                  {item.dropdown && <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>}
                 </Link>
 
                 {item.dropdown && activeDropdown === item.name && (
@@ -135,13 +156,14 @@ const Navbar = () => {
                       <Link
                         key={dropdownItem.name}
                         to={dropdownItem.path}
-                        className={`block px-4 py-2 text-sm transition-colors ${
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
                           location.pathname === dropdownItem.path
                             ? 'text-blue-600 bg-blue-50'
                             : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                         }`}
                       >
-                        {dropdownItem.name}
+                        <dropdownItem.icon className="h-4 w-4" />
+                        <span>{dropdownItem.name}</span>
                       </Link>
                     ))}
                   </motion.div>
@@ -174,7 +196,7 @@ const Navbar = () => {
                         className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-lg"
                         onClick={() => setProfileOpen(false)}
                       >
-                        <Brain className="h-4 w-4" />
+                        <BarChart3 className="h-4 w-4" />
                         <span>Dashboard</span>
                       </Link>
                       <Link
@@ -248,29 +270,31 @@ const Navbar = () => {
                 <div key={item.name}>
                   <Link
                     to={item.path}
-                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium transition-colors ${
                       location.pathname.startsWith(item.path.split('/').slice(0, 2).join('/'))
                         ? 'text-blue-600 bg-blue-50'
                         : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                     }`}
                     onClick={() => !item.dropdown && setIsOpen(false)}
                   >
-                    {item.name}
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
                   </Link>
                   {item.dropdown && (
-                    <div className="pl-4 space-y-1">
+                    <div className="pl-8 space-y-1">
                       {item.dropdown.map((dropdownItem) => (
                         <Link
                           key={dropdownItem.name}
                           to={dropdownItem.path}
-                          className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                          className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm transition-colors ${
                             location.pathname === dropdownItem.path
                               ? 'text-blue-600 bg-blue-50'
                               : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                           }`}
                           onClick={() => setIsOpen(false)}
                         >
-                          {dropdownItem.name}
+                          <dropdownItem.icon className="h-4 w-4" />
+                          <span>{dropdownItem.name}</span>
                         </Link>
                       ))}
                     </div>

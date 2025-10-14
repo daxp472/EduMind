@@ -1,12 +1,10 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, BookOpen, Target, TrendingUp, Clock, Award, FileText, MessageSquare, ChartBar as BarChart3, Users, Lightbulb, Calendar } from 'lucide-react';
+import { Brain, BookOpen, Target, Clock, Award, FileText, MessageSquare, BarChart3, Lightbulb, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
 
   const stats = [
     {
