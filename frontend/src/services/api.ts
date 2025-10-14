@@ -94,6 +94,25 @@ export const authAPI = {
     
     return response.json();
   },
+  
+  // Request student verification
+  requestStudentVerification: async (verificationData: { studentIdCard: string; studentIdCardSelfie: string }, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/request-student-verification`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(verificationData),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to request student verification');
+    }
+    
+    return response.json();
+  }
 };
 
 // AI Tools API
@@ -232,6 +251,81 @@ export const studyAPI = {
   },
 };
 
+// Analytics API
+export const analyticsAPI = {
+  // Get learning analytics
+  getLearningAnalytics: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/analytics/learning`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch learning analytics');
+    }
+    
+    return response.json();
+  },
+
+  // Get progress reports
+  getProgressReports: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/analytics/reports`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch progress reports');
+    }
+    
+    return response.json();
+  },
+
+  // Get performance insights
+  getPerformanceInsights: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/analytics/insights`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch performance insights');
+    }
+    
+    return response.json();
+  },
+
+  // Get learning paths
+  getLearningPaths: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/analytics/learning-paths`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch learning paths');
+    }
+    
+    return response.json();
+  }
+};
+
 // User management (admin only)
 export const userAPI = {
   // Get all users (admin only)
@@ -288,6 +382,60 @@ export const userAPI = {
     
     return response.json();
   },
+  
+  // Get pending student verifications (admin only)
+  getPendingStudentVerifications: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/pending-student-verifications`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch pending student verifications');
+    }
+    
+    return response.json();
+  },
+  
+  // Approve student verification (admin only)
+  approveStudentVerification: async (userId: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/approve-student-verification/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to approve student verification');
+    }
+    
+    return response.json();
+  },
+  
+  // Reject student verification (admin only)
+  rejectStudentVerification: async (userId: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/reject-student-verification/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to reject student verification');
+    }
+    
+    return response.json();
+  }
 };
 
 // Utility functions

@@ -1,71 +1,172 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, TrendingUp, Zap, Crown, Clock } from 'lucide-react';
+import { Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, Zap, Clock, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { analyticsAPI } from '../services/api';
 import toast from 'react-hot-toast';
+
+// Define types for our data
+interface AnalyticsData {
+  learning: {
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    successRate: number;
+    toolUsage: Record<string, number>;
+    studyMaterials: number;
+  };
+  progress: {
+    dailyUsage: Record<string, number>;
+    studyMaterials: Array<{
+      id: string;
+      title: string;
+      type: string;
+      subject: string;
+      createdAt: string;
+    }>;
+  };
+  performance: {
+    averageProcessingTime: number;
+    averageTokens: number;
+    mostUsedTool: string;
+    totalToolsUsed: number;
+  };
+}
+
+interface UserProfileData {
+  name: string;
+  email: string;
+  bio: string;
+  location: string;
+  institution: string;
+  major: string;
+  joinedDate: string;
+}
 
 const Profile = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<UserProfileData>({
     name: user?.name || '',
     email: user?.email || '',
     bio: 'Passionate learner exploring the frontiers of AI-enhanced education.',
     location: 'San Francisco, CA',
     institution: 'University of California, Berkeley',
     major: 'Computer Science',
-    joinedDate: 'January 2024'
+    joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'January 2024'
   });
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock usage data - in a real app, this would come from the backend
-  const usageData = {
-    currentPlan: user?.subscriptionPlan || 'free',
-    usageCount: user?.usageCount || 25,
-    usageLimit: user?.usageLimit || 100,
-    resetDate: 'April 15, 2024',
-    aiRequests: [
-      { type: 'Summary', count: 12 },
-      { type: 'Quiz', count: 8 },
-      { type: 'Tutor', count: 5 },
-      { type: 'Flashcards', count: 3 }
-    ]
-  };
+  // Fetch analytics data
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('edumind_token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        // Fetch all analytics data
+        const [learningAnalytics, progressReports, performanceInsights] = await Promise.all([
+          analyticsAPI.getLearningAnalytics(token),
+          analyticsAPI.getProgressReports(token),
+          analyticsAPI.getPerformanceInsights(token)
+        ]);
+
+        setAnalyticsData({
+          learning: learningAnalytics.data,
+          progress: progressReports.data,
+          performance: performanceInsights.data
+        });
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch analytics data';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchAnalytics();
+    }
+  }, [user]);
 
   const planDetails = {
-    guest: { name: 'Guest', color: 'gray', limit: 5, features: ['Basic AI tools', 'Limited usage'] },
-    free: { name: 'Free', color: 'blue', limit: 100, features: ['All AI tools', 'Basic analytics', 'Community access'] },
-    student: { name: 'Student', color: 'green', limit: 1000, features: ['All Free features', 'Higher limits', 'Priority support'] },
-    pro: { name: 'Pro', color: 'purple', limit: 5000, features: ['All Student features', 'Advanced analytics', 'Custom models'] },
-    ultra: { name: 'Ultra', color: 'gold', limit: 20000, features: ['All Pro features', 'Unlimited access', 'Dedicated support'] }
+    guest: { name: 'Guest', color: 'gray', limit: user?.usageLimit || 5, features: ['Basic AI tools', 'Limited usage'] },
+    free: { name: 'Free', color: 'blue', limit: user?.usageLimit || 100, features: ['All AI tools', 'Basic analytics', 'Community access'] },
+    student: { name: 'Student', color: 'green', limit: user?.usageLimit || 1000, features: ['All Free features', 'Higher limits', 'Priority support'] },
+    pro: { name: 'Pro', color: 'purple', limit: user?.usageLimit || 5000, features: ['All Student features', 'Advanced analytics', 'Custom models'] },
+    ultra: { name: 'Ultra', color: 'gold', limit: user?.usageLimit || 20000, features: ['All Pro features', 'Unlimited access', 'Dedicated support'] }
   };
 
-  const stats = [
-    {
-      icon: BookOpen,
-      label: 'Notes Summarized',
-      value: '142',
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      icon: Target,
-      label: 'Quizzes Completed',
-      value: '28',
-      color: 'from-green-500 to-green-600'
-    },
-    {
-      icon: TrendingUp,
-      label: 'Study Hours',
-      value: '87.5',
-      color: 'from-purple-500 to-purple-600'
-    },
-    {
-      icon: Award,
-      label: 'Achievements',
-      value: '12',
-      color: 'from-orange-500 to-orange-600'
-    }
-  ];
+  const handleSave = () => {
+    // Simulate saving profile data
+    toast.success('Profile updated successfully!');
+    setIsEditing(false);
+  };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setProfileData({
+      ...profileData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const getPlanColor = (plan: string | undefined) => {
+    switch (plan) {
+      case 'guest': return 'bg-gray-500';
+      case 'free': return 'bg-blue-500';
+      case 'student': return 'bg-green-500';
+      case 'pro': return 'bg-purple-500';
+      case 'ultra': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getUsagePercentage = () => {
+    if (!user || user.usageCount === undefined || user.usageLimit === undefined) return 0;
+    return Math.min(100, (user.usageCount / user.usageLimit) * 100);
+  };
+
+  // Calculate stats from analytics data
+  const calculateStats = () => {
+    if (!analyticsData) return [];
+    
+    return [
+      {
+        icon: BookOpen,
+        label: 'Notes Summarized',
+        value: analyticsData.learning?.toolUsage?.summarizer || 0,
+        color: 'from-blue-500 to-blue-600'
+      },
+      {
+        icon: Target,
+        label: 'Quizzes Generated',
+        value: analyticsData.learning?.toolUsage?.['quiz-generator'] || 0,
+        color: 'from-green-500 to-green-600'
+      },
+      {
+        icon: Clock,
+        label: 'Study Hours',
+        value: Math.round((analyticsData.performance?.averageProcessingTime || 0) / 60000), // Convert ms to minutes
+        color: 'from-purple-500 to-purple-600'
+      },
+      {
+        icon: Award,
+        label: 'Achievements',
+        value: Object.keys(analyticsData.learning?.toolUsage || {}).length,
+        color: 'from-orange-500 to-orange-600'
+      }
+    ];
+  };
+
+  const stats = calculateStats();
+
+  // Mock achievements - in a real app, this would come from the backend
   const achievements = [
     {
       title: 'First Summary',
@@ -93,6 +194,7 @@ const Profile = () => {
     }
   ];
 
+  // Mock recent activity - in a real app, this would come from the backend
   const recentActivity = [
     {
       type: 'summary',
@@ -116,33 +218,38 @@ const Profile = () => {
     }
   ];
 
-  const handleSave = () => {
-    // Simulate saving profile data
-    toast.success('Profile updated successfully!');
-    setIsEditing(false);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your profile data...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfileData({
-      ...profileData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const getPlanColor = (plan: string) => {
-    switch (plan) {
-      case 'guest': return 'bg-gray-500';
-      case 'free': return 'bg-blue-500';
-      case 'student': return 'bg-green-500';
-      case 'pro': return 'bg-purple-500';
-      case 'ultra': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getUsagePercentage = () => {
-    return Math.min(100, (usageData.usageCount / usageData.usageLimit) * 100);
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Data</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -196,8 +303,8 @@ const Profile = () => {
                 <div>
                   <div className="flex items-center space-x-3 mb-2">
                     <h1 className="text-3xl font-bold text-gray-900">{profileData.name}</h1>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getPlanColor(usageData.currentPlan)}`}>
-                      {planDetails[usageData.currentPlan as keyof typeof planDetails]?.name || 'Free'} Plan
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getPlanColor(user?.subscriptionPlan)}`}>
+                      {planDetails[user?.subscriptionPlan as keyof typeof planDetails]?.name || 'Free'} Plan
                     </span>
                   </div>
                   <p className="text-gray-600 mb-4">{profileData.bio}</p>
@@ -261,7 +368,7 @@ const Profile = () => {
             <div className="flex items-center space-x-2">
               <Zap className="h-5 w-5 text-yellow-500" />
               <span className="font-medium">
-                {usageData.usageCount} / {usageData.usageLimit} requests used
+                {user?.usageCount || 0} / {user?.usageLimit || 0} requests used
               </span>
             </div>
           </div>
@@ -270,7 +377,7 @@ const Profile = () => {
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Monthly Usage</span>
-              <span>Resets on {usageData.resetDate}</span>
+              <span>Resets on {user?.resetUsageAt ? new Date(user.resetUsageAt).toLocaleDateString() : 'N/A'}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
@@ -286,16 +393,16 @@ const Profile = () => {
               <h3 className="font-semibold text-gray-900 mb-3">Current Plan</h3>
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
                 <div className="flex items-center space-x-3 mb-3">
-                  <div className={`w-3 h-3 rounded-full ${getPlanColor(usageData.currentPlan)}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${getPlanColor(user?.subscriptionPlan)}`}></div>
                   <span className="font-bold text-lg">
-                    {planDetails[usageData.currentPlan as keyof typeof planDetails]?.name || 'Free'} Plan
+                    {planDetails[user?.subscriptionPlan as keyof typeof planDetails]?.name || 'Free'} Plan
                   </span>
                 </div>
                 <p className="text-gray-600 text-sm mb-3">
-                  {planDetails[usageData.currentPlan as keyof typeof planDetails]?.features.join(', ')}
+                  {planDetails[user?.subscriptionPlan as keyof typeof planDetails]?.features.join(', ')}
                 </p>
                 <div className="text-sm">
-                  <span className="font-medium">Usage Limit:</span> {usageData.usageLimit} requests/month
+                  <span className="font-medium">Usage Limit:</span> {user?.usageLimit || 0} requests/month
                 </div>
               </div>
             </div>
@@ -303,12 +410,16 @@ const Profile = () => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">AI Request Distribution</h3>
               <div className="space-y-3">
-                {usageData.aiRequests.map((request, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-gray-600">{request.type}</span>
-                    <span className="font-medium">{request.count}</span>
-                  </div>
-                ))}
+                {analyticsData?.learning?.toolUsage ? (
+                  Object.entries(analyticsData.learning.toolUsage).map(([tool, count], index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="text-gray-600 capitalize">{tool.replace('-', ' ')}</span>
+                      <span className="font-medium">{count as number}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No AI requests yet</p>
+                )}
               </div>
             </div>
           </div>

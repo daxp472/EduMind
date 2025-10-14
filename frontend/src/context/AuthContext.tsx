@@ -8,6 +8,12 @@ interface User {
   subscriptionPlan?: string;
   usageCount?: number;
   usageLimit?: number;
+  role?: string;
+  emailVerified?: boolean;
+  studentVerificationStatus?: 'pending' | 'approved' | 'rejected';
+  studentVerificationRequestedAt?: string;
+  resetUsageAt?: string;
+  createdAt?: string;
 }
 
 interface AuthContextType {
