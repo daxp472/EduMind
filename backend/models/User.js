@@ -80,6 +80,109 @@ const UserSchema = new mongoose.Schema({
   avatar: {
     type: String
   },
+  // Academic Information
+  academicInfo: {
+    institution: {
+      type: String,
+      trim: true
+    },
+    major: {
+      type: String,
+      trim: true
+    },
+    degree: {
+      type: String,
+      trim: true
+    },
+    year: {
+      type: String,
+      trim: true
+    },
+    gpa: {
+      type: Number,
+      min: 0,
+      max: 4.0
+    },
+    location: {
+      type: String,
+      trim: true
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Bio cannot be more than 500 characters']
+    }
+  },
+  // Achievements
+  achievements: [
+    {
+      title: {
+        type: String,
+        required: true
+      },
+      description: {
+        type: String,
+        required: true
+      },
+      icon: {
+        type: String
+      },
+      points: {
+        type: Number,
+        default: 0
+      },
+      category: {
+        type: String
+      },
+      earnedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
+  // Recent Activity
+  recentActivity: [
+    {
+      type: {
+        type: String,
+        required: true,
+        enum: ['summary_created', 'quiz_completed', 'note_added', 'achievement_earned', 'study_session', 'ai_tool_used', 'login']
+      },
+      title: {
+        type: String,
+        required: true
+      },
+      description: {
+        type: String
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ],
+  // Study Hours Tracking
+  studyStats: {
+    totalHours: {
+      type: Number,
+      default: 0
+    },
+    totalSessions: {
+      type: Number,
+      default: 0
+    },
+    averageProductivity: {
+      type: Number,
+      default: 0
+    },
+    subjectStats: {
+      type: Map,
+      of: {
+        hours: { type: Number, default: 0 },
+        sessions: { type: Number, default: 0 }
+      }
+    }
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -147,6 +250,45 @@ UserSchema.methods.getEmailVerificationToken = function() {
   this.emailVerificationExpires = Date.now() + 60 * 60 * 1000;
   
   return verificationToken;
+};
+
+// Add achievement to user
+UserSchema.methods.addAchievement = function(achievement) {
+  this.achievements.push(achievement);
+  return this.save();
+};
+
+// Add activity to user
+UserSchema.methods.addActivity = function(activity) {
+  // Keep only the last 50 activities
+  if (this.recentActivity.length >= 50) {
+    this.recentActivity.shift();
+  }
+  this.recentActivity.push(activity);
+  return this.save();
+};
+
+// Update study stats
+UserSchema.methods.updateStudyStats = function(subject, hours, sessions = 1) {
+  this.studyStats.totalHours += hours;
+  this.studyStats.totalSessions += sessions;
+  
+  // Update subject stats
+  if (!this.studyStats.subjectStats) {
+    this.studyStats.subjectStats = new Map();
+  }
+  
+  const subjectStat = this.studyStats.subjectStats.get(subject) || { hours: 0, sessions: 0 };
+  subjectStat.hours += hours;
+  subjectStat.sessions += sessions;
+  this.studyStats.subjectStats.set(subject, subjectStat);
+  
+  // Update average productivity (simplified calculation)
+  if (this.studyStats.totalSessions > 0) {
+    this.studyStats.averageProductivity = Math.min(100, (this.studyStats.totalHours / this.studyStats.totalSessions) * 10);
+  }
+  
+  return this.save();
 };
 
 module.exports = mongoose.model('User', UserSchema);

@@ -14,6 +14,10 @@ const userRoutes = require('./routes/users');
 const aiRoutes = require('./routes/ai');
 const studyRoutes = require('./routes/study');
 const analyticsRoutes = require('./routes/analytics');
+const academicRoutes = require('./routes/academic');
+const achievementsRoutes = require('./routes/achievements');
+const activityRoutes = require('./routes/activity');
+const studySessionsRoutes = require('./routes/studySessions');
 
 // Initialize app
 const app = express();
@@ -36,6 +40,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/study', studyRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/academic', academicRoutes);
+app.use('/api/achievements', achievementsRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/study-sessions', studySessionsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -1,4 +1,5 @@
 const StudyMaterial = require('../models/StudyMaterial');
+const User = require('../models/User');
 
 // Study groups model (in-memory for now, can be moved to DB)
 let studyGroups = [];
@@ -68,6 +69,19 @@ exports.createStudyMaterial = async (req, res, next) => {
       tags,
       user: req.user.id
     });
+    
+    // Add activity tracking
+    const user = await User.findById(req.user.id);
+    if (user) {
+      const activity = {
+        type: 'note_added',
+        title: `New Study Material: ${title}`,
+        description: `Created a ${type} on ${subject}`,
+        timestamp: Date.now()
+      };
+      
+      await user.addActivity(activity);
+    }
     
     res.status(201).json({
       success: true,
@@ -209,6 +223,19 @@ exports.createStudyGroup = async (req, res, next) => {
     };
     
     studyGroups.push(newGroup);
+    
+    // Add activity tracking
+    const user = await User.findById(req.user.id);
+    if (user) {
+      const activity = {
+        type: 'study_session',
+        title: `Created Study Group: ${name}`,
+        description: `Created a study group for ${subject}`,
+        timestamp: Date.now()
+      };
+      
+      await user.addActivity(activity);
+    }
     
     res.status(201).json({
       success: true,
@@ -381,6 +408,23 @@ exports.endStudySession = async (req, res, next) => {
     session.endTime = new Date();
     session.duration = (session.endTime - session.startTime) / 1000; // in seconds
     session.status = 'completed';
+    
+    // Add to user's study stats
+    const user = await User.findById(req.user.id);
+    if (user) {
+      const hours = session.duration / 3600; // Convert seconds to hours
+      await user.updateStudyStats(session.subject, hours);
+      
+      // Add activity tracking
+      const activity = {
+        type: 'study_session',
+        title: `Completed Study Session: ${session.subject}`,
+        description: `Studied for ${Math.round(hours * 100) / 100} hours on ${session.subject}`,
+        timestamp: Date.now()
+      };
+      
+      await user.addActivity(activity);
+    }
     
     res.status(200).json({
       success: true,

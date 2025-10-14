@@ -1,15 +1,33 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FolderOpen, Upload, Search, Filter, Download, Eye, Star, Clock, FileText, Image, Video, Music } from 'lucide-react';
+import { FolderOpen, Upload, Search, Download, Eye, Star, FileText, Image, Video, Music, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+// Define the material type
+interface StudyMaterial {
+  id: number;
+  name: string;
+  type: string;
+  subject: string;
+  category: string;
+  size: string;
+  uploadDate: string;
+  lastAccessed: string;
+  favorite: boolean;
+  description: string;
+}
 
 const StudyMaterials = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [uploadPreviews, setUploadPreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const materials = [
+  const materials: StudyMaterial[] = [
     {
       id: 1,
       name: 'Calculus Fundamentals.pdf',
@@ -112,7 +130,7 @@ const StudyMaterials = () => {
     return matchesSearch && matchesCategory && matchesSubject;
   });
 
-  const getFileIcon = (type) => {
+  const getFileIcon = (type: string) => {
     switch (type) {
       case 'pdf':
       case 'document':
@@ -128,7 +146,7 @@ const StudyMaterials = () => {
     }
   };
 
-  const getFileColor = (type) => {
+  const getFileColor = (type: string) => {
     switch (type) {
       case 'pdf':
         return 'text-red-600 bg-red-100';
@@ -145,16 +163,90 @@ const StudyMaterials = () => {
     }
   };
 
-  const toggleFavorite = (materialId) => {
+  const toggleFavorite = () => {
+    // In a real implementation, this would update the backend
+    // For now, we're just showing a toast
     toast.success('Favorite status updated!');
   };
 
-  const downloadFile = (material) => {
+  const downloadFile = (material: StudyMaterial) => {
     toast.success(`Downloading ${material.name}...`);
   };
 
-  const previewFile = (material) => {
+  const previewFile = (material: StudyMaterial) => {
     toast.success(`Opening ${material.name} for preview...`);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setUploadFiles(prev => [...prev, ...files]);
+      
+      // Create previews for image files
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setUploadPreviews(prev => [...prev, e.target?.result as string]);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleUpload = async () => {
+    if (uploadFiles.length === 0) {
+      toast.error('Please select files to upload');
+      return;
+    }
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      uploadFiles.forEach(file => {
+        formData.append('images', file);
+      });
+      
+      // Add other fields
+      formData.append('title', 'Sample Title');
+      formData.append('content', 'Sample content');
+      formData.append('type', 'note');
+      formData.append('subject', 'Mathematics');
+      formData.append('tags', JSON.stringify(['sample', 'test']));
+
+      const token = localStorage.getItem('edumind_token');
+      const response = await fetch('http://localhost:5000/api/study/materials', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload files');
+      }
+
+      toast.success('Files uploaded successfully!');
+      setShowUploadModal(false);
+      setUploadFiles([]);
+      setUploadPreviews([]);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload files';
+      toast.error(errorMessage);
+    }
   };
 
   return (
@@ -173,7 +265,7 @@ const StudyMaterials = () => {
             <p className="text-lg text-gray-600">Organize and access your learning resources</p>
           </div>
           <button
-            onClick={() => toast.success('File upload feature coming soon!')}
+            onClick={() => setShowUploadModal(true)}
             className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-blue-700 transition-all transform hover:scale-105"
           >
             <Upload className="h-5 w-5" />
@@ -260,7 +352,7 @@ const StudyMaterials = () => {
                           <FileIcon className="h-6 w-6" />
                         </div>
                         <button
-                          onClick={() => toggleFavorite(material.id)}
+                          onClick={toggleFavorite}
                           className={`p-2 rounded-lg transition-colors ${
                             material.favorite 
                               ? 'text-yellow-500 bg-yellow-100' 
@@ -284,31 +376,26 @@ const StudyMaterials = () => {
                         <span>{material.size}</span>
                       </div>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{new Date(material.lastAccessed).toLocaleDateString()}</span>
-                        </div>
-                        <span className="px-2 py-1 bg-gray-100 rounded-full">
-                          {material.category}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {new Date(material.uploadDate).toLocaleDateString()}
                         </span>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => previewFile(material)}
-                          className="flex-1 flex items-center justify-center space-x-1 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="text-sm">Preview</span>
-                        </button>
-                        <button
-                          onClick={() => downloadFile(material)}
-                          className="flex-1 flex items-center justify-center space-x-1 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                        >
-                          <Download className="h-4 w-4" />
-                          <span className="text-sm">Download</span>
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => previewFile(material)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Preview"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => downloadFile(material)}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -317,91 +404,265 @@ const StudyMaterials = () => {
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="divide-y divide-gray-200">
-                {filteredMaterials.map((material) => {
-                  const FileIcon = getFileIcon(material.type);
-                  return (
-                    <div key={material.id} className="p-6 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-xl ${getFileColor(material.type)}`}>
-                          <FileIcon className="h-6 w-6" />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold text-gray-900 truncate">
-                              {material.name}
-                            </h3>
-                            {material.favorite && (
-                              <Star className="h-4 w-4 text-yellow-500" />
-                            )}
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredMaterials.map((material) => (
+                    <tr key={material.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className={`p-2 rounded-lg ${getFileColor(material.type)} mr-3`}>
+                            {React.createElement(getFileIcon(material.type), { className: "h-4 w-4" })}
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{material.description}</p>
-                          <div className="flex items-center space-x-4 text-xs text-gray-500">
-                            <span>{material.subject}</span>
-                            <span>{material.category}</span>
-                            <span>{material.size}</span>
-                            <span>Last accessed: {new Date(material.lastAccessed).toLocaleDateString()}</span>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{material.name}</div>
+                            <div className="text-sm text-gray-500 line-clamp-1">{material.description}</div>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => previewFile(material)}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => downloadFile(material)}
-                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => toggleFavorite(material.id)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              material.favorite 
-                                ? 'text-yellow-500 bg-yellow-100' 
-                                : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-100'
-                            }`}
-                          >
-                            <Star className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {material.subject}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {material.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {material.size}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(material.uploadDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => previewFile(material)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => downloadFile(material)}
+                          className="text-green-600 hover:text-green-900 mr-3"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={toggleFavorite}
+                          className={`${
+                            material.favorite 
+                              ? 'text-yellow-500' 
+                              : 'text-gray-400 hover:text-yellow-500'
+                          }`}
+                        >
+                          <Star className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </motion.div>
 
-        {/* Empty State */}
         {filteredMaterials.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center py-12"
+            className="bg-white rounded-2xl shadow-lg p-12 text-center"
           >
             <FolderOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No materials found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Try adjusting your search terms or filters, or upload some new materials.
-            </p>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">No study materials found</h3>
+            <p className="text-gray-500 mb-6">Try adjusting your search or filter criteria</p>
             <button
-              onClick={() => toast.success('File upload feature coming soon!')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+              onClick={() => setShowUploadModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Upload Your First File
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Materials
             </button>
           </motion.div>
         )}
 
+        {/* Upload Modal */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">Upload Study Materials</h2>
+                  <button
+                    onClick={() => {
+                      setShowUploadModal(false);
+                      setUploadFiles([]);
+                      setUploadPreviews([]);
+                    }}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div 
+                  onClick={triggerFileInput}
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                >
+                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-lg font-medium text-gray-900 mb-2">Drag and drop files here</p>
+                  <p className="text-gray-500 mb-4">or click to browse your files</p>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                    Browse Files
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt"
+                  />
+                </div>
+                
+                {uploadPreviews.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Selected Files</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {uploadPreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={preview} 
+                            alt="Preview" 
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {uploadFiles.length > 0 && (
+                  <div className="mt-6">
+                    <ul className="divide-y divide-gray-200">
+                      {uploadFiles.map((file, index) => (
+                        <li key={index} className="py-3 flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="p-2 bg-gray-100 rounded-lg mr-3">
+                              <FileText className="h-5 w-5 text-gray-500" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                              <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter title"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option>Mathematics</option>
+                      <option>Physics</option>
+                      <option>Chemistry</option>
+                      <option>Biology</option>
+                      <option>Computer Science</option>
+                      <option>Languages</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option>Notes</option>
+                      <option>Flashcards</option>
+                      <option>Study Guides</option>
+                      <option>Templates</option>
+                      <option>References</option>
+                      <option>Videos</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Comma separated tags"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter description"
+                  ></textarea>
+                </div>
+                
+                <div className="mt-8 flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowUploadModal(false);
+                      setUploadFiles([]);
+                      setUploadPreviews([]);
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpload}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Files
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

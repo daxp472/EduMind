@@ -133,6 +133,16 @@ exports.login = async (req, res, next) => {
       });
     }
 
+    // Add login activity
+    const activity = {
+      type: 'login',
+      title: 'User Login',
+      description: 'User successfully logged in',
+      timestamp: Date.now()
+    };
+    
+    await user.addActivity(activity);
+
     sendTokenResponse(user, 200, res);
   } catch (err) {
     res.status(500).json({

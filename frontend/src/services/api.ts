@@ -326,6 +326,273 @@ export const analyticsAPI = {
   }
 };
 
+// Academic Information API
+export const academicAPI = {
+  // Get academic information
+  getAcademicInfo: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/academic`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch academic information');
+    }
+    
+    return response.json();
+  },
+
+  // Update academic information
+  updateAcademicInfo: async (academicData: any, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/academic`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(academicData),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update academic information');
+    }
+    
+    return response.json();
+  },
+
+  // Update profile image
+  updateProfileImage: async (imageData: FormData, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/academic/profile-image`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: imageData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update profile image');
+    }
+    
+    return response.json();
+  },
+
+  // Update cover image
+  updateCoverImage: async (imageData: FormData, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/academic/cover-image`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: imageData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update cover image');
+    }
+    
+    return response.json();
+  }
+};
+
+// Achievements API
+export const achievementsAPI = {
+  // Get user achievements
+  getAchievements: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/achievements`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch achievements');
+    }
+    
+    return response.json();
+  },
+
+  // Get achievements by category
+  getAchievementsByCategory: async (category: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/achievements/category/${category}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch achievements');
+    }
+    
+    return response.json();
+  }
+};
+
+// Activity API
+export const activityAPI = {
+  // Get recent activity
+  getRecentActivity: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/activity`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch activity');
+    }
+    
+    return response.json();
+  },
+
+  // Get activity by type
+  getActivityByType: async (type: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/activity/type/${type}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch activity');
+    }
+    
+    return response.json();
+  }
+};
+
+// Study Sessions API
+export const studySessionsAPI = {
+  // Get study sessions
+  getStudySessions: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/study-sessions`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch study sessions');
+    }
+    
+    return response.json();
+  },
+
+  // Get study sessions by subject
+  getStudySessionsBySubject: async (subject: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/study-sessions/subject/${subject}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch study sessions');
+    }
+    
+    return response.json();
+  },
+
+  // Get study statistics
+  getStudyStats: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/study-sessions/stats`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch study statistics');
+    }
+    
+    return response.json();
+  },
+
+  // Create study session
+  createStudySession: async (sessionData: any, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/study-sessions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sessionData),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create study session');
+    }
+    
+    return response.json();
+  },
+
+  // Update study session
+  updateStudySession: async (id: string, sessionData: any, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/study-sessions/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sessionData),
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update study session');
+    }
+    
+    return response.json();
+  },
+
+  // Delete study session
+  deleteStudySession: async (id: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/study-sessions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete study session');
+    }
+    
+    return response.json();
+  }
+};
+
 // User management (admin only)
 export const userAPI = {
   // Get all users (admin only)

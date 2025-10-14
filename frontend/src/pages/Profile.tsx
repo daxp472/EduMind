@@ -1,11 +1,50 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, Zap, Clock, Loader } from 'lucide-react';
+import { Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, Zap, Clock, Loader, GraduationCap, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { analyticsAPI } from '../services/api';
+import { analyticsAPI, academicAPI, achievementsAPI, activityAPI, studySessionsAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Define types for our data
+interface AcademicInfo {
+  institution?: string;
+  major?: string;
+  degree?: string;
+  year?: string;
+  gpa?: number;
+  location?: string;
+  bio?: string;
+  profileImage?: string;
+  coverImage?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  points: number;
+  category: string;
+  earnedAt: string;
+}
+
+interface Activity {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  timestamp: string;
+}
+
+interface StudyStats {
+  totalHours: number;
+  totalSessions: number;
+  averageProductivity: number;
+  subjectStats: Record<string, { hours: number; sessions: number }>;
+}
+
 interface AnalyticsData {
   learning: {
     totalRequests: number;
@@ -55,13 +94,17 @@ const Profile = () => {
     major: 'Computer Science',
     joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'January 2024'
   });
+  const [academicInfo, setAcademicInfo] = useState<AcademicInfo | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [studyStats, setStudyStats] = useState<StudyStats | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch analytics data
+  // Fetch all user data
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchAllData = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('edumind_token');
@@ -69,20 +112,45 @@ const Profile = () => {
           throw new Error('No authentication token found');
         }
 
-        // Fetch all analytics data
-        const [learningAnalytics, progressReports, performanceInsights] = await Promise.all([
+        // Fetch all data in parallel
+        const [
+          academicResponse,
+          achievementsResponse,
+          activityResponse,
+          studyStatsResponse,
+          learningAnalyticsResponse,
+          progressReportsResponse,
+          performanceInsightsResponse
+        ] = await Promise.all([
+          academicAPI.getAcademicInfo(token),
+          achievementsAPI.getAchievements(token),
+          activityAPI.getRecentActivity(token),
+          studySessionsAPI.getStudyStats(token),
           analyticsAPI.getLearningAnalytics(token),
           analyticsAPI.getProgressReports(token),
           analyticsAPI.getPerformanceInsights(token)
         ]);
 
+        setAcademicInfo(academicResponse.data);
+        setAchievements(achievementsResponse.data);
+        setRecentActivity(activityResponse.data);
+        setStudyStats(studyStatsResponse.data);
         setAnalyticsData({
-          learning: learningAnalytics.data,
-          progress: progressReports.data,
-          performance: performanceInsights.data
+          learning: learningAnalyticsResponse.data,
+          progress: progressReportsResponse.data,
+          performance: performanceInsightsResponse.data
         });
+
+        // Update profile data with academic info
+        setProfileData(prev => ({
+          ...prev,
+          bio: academicResponse.data?.bio || prev.bio,
+          location: academicResponse.data?.location || prev.location,
+          institution: academicResponse.data?.institution || prev.institution,
+          major: academicResponse.data?.major || prev.major
+        }));
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch analytics data';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch profile data';
         setError(errorMessage);
         toast.error(errorMessage);
       } finally {
@@ -91,7 +159,7 @@ const Profile = () => {
     };
 
     if (user) {
-      fetchAnalytics();
+      fetchAllData();
     }
   }, [user]);
 
@@ -103,10 +171,28 @@ const Profile = () => {
     ultra: { name: 'Ultra', color: 'gold', limit: user?.usageLimit || 20000, features: ['All Pro features', 'Unlimited access', 'Dedicated support'] }
   };
 
-  const handleSave = () => {
-    // Simulate saving profile data
-    toast.success('Profile updated successfully!');
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('edumind_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Update academic information
+      const academicData = {
+        bio: profileData.bio,
+        location: profileData.location,
+        institution: profileData.institution,
+        major: profileData.major
+      };
+
+      await academicAPI.updateAcademicInfo(academicData, token);
+      toast.success('Profile updated successfully!');
+      setIsEditing(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      toast.error(errorMessage);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -152,71 +238,19 @@ const Profile = () => {
       {
         icon: Clock,
         label: 'Study Hours',
-        value: Math.round((analyticsData.performance?.averageProcessingTime || 0) / 60000), // Convert ms to minutes
+        value: studyStats?.totalHours || 0,
         color: 'from-purple-500 to-purple-600'
       },
       {
         icon: Award,
         label: 'Achievements',
-        value: Object.keys(analyticsData.learning?.toolUsage || {}).length,
+        value: achievements.length,
         color: 'from-orange-500 to-orange-600'
       }
     ];
   };
 
   const stats = calculateStats();
-
-  // Mock achievements - in a real app, this would come from the backend
-  const achievements = [
-    {
-      title: 'First Summary',
-      description: 'Created your first AI-powered summary',
-      date: 'Jan 15, 2024',
-      icon: '🎯'
-    },
-    {
-      title: 'Quiz Master',
-      description: 'Completed 25 AI-generated quizzes',
-      date: 'Feb 20, 2024',
-      icon: '🧠'
-    },
-    {
-      title: 'Study Streak',
-      description: '7-day consecutive study streak',
-      date: 'Mar 10, 2024',
-      icon: '🔥'
-    },
-    {
-      title: 'Knowledge Explorer',
-      description: 'Explored 5 different subjects',
-      date: 'Mar 15, 2024',
-      icon: '🚀'
-    }
-  ];
-
-  // Mock recent activity - in a real app, this would come from the backend
-  const recentActivity = [
-    {
-      type: 'summary',
-      title: 'Summarized "Advanced Machine Learning Concepts"',
-      time: '2 hours ago'
-    },
-    {
-      type: 'quiz',
-      title: 'Completed quiz on "Neural Networks"',
-      time: '1 day ago'
-    },
-    {
-      type: 'note',
-      title: 'Added notes for "Deep Learning Fundamentals"',
-      time: '2 days ago'
-    },
-    {
-      type: 'achievement',
-      title: 'Earned "Study Streak" achievement',
-      time: '3 days ago'
-    }
-  ];
 
   if (loading) {
     return (
@@ -453,18 +487,27 @@ const Profile = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Achievements</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Achievements</h2>
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <TrendingUp className="h-4 w-4" />
+                <span>{achievements.length} earned</span>
+              </div>
+            </div>
             <div className="space-y-4">
-              {achievements.map((achievement, index) => (
+              {achievements.slice(0, 4).map((achievement, index) => (
                 <div key={index} className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl hover:from-yellow-100 hover:to-orange-100 transition-colors">
                   <div className="text-2xl">{achievement.icon}</div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
                     <p className="text-sm text-gray-600">{achievement.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">{achievement.date}</p>
+                    <p className="text-xs text-gray-500 mt-1">{new Date(achievement.earnedAt).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
+              {achievements.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No achievements yet. Keep learning to earn badges!</p>
+              )}
             </div>
           </motion.div>
 
@@ -475,27 +518,43 @@ const Profile = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <Clock className="h-4 w-4" />
+                <span>Last 50 activities</span>
+              </div>
+            </div>
             <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
+              {recentActivity.slice(0, 4).map((activity, index) => (
                 <div key={index} className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-xl transition-colors">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    activity.type === 'summary' ? 'bg-blue-100' :
-                    activity.type === 'quiz' ? 'bg-green-100' :
-                    activity.type === 'note' ? 'bg-purple-100' :
+                    activity.type === 'summary_created' ? 'bg-blue-100' :
+                    activity.type === 'quiz_completed' ? 'bg-green-100' :
+                    activity.type === 'note_added' ? 'bg-purple-100' :
+                    activity.type === 'achievement_earned' ? 'bg-yellow-100' :
+                    activity.type === 'study_session' ? 'bg-indigo-100' :
+                    activity.type === 'ai_tool_used' ? 'bg-pink-100' :
                     'bg-orange-100'
                   }`}>
-                    {activity.type === 'summary' && <BookOpen className="h-4 w-4 text-blue-600" />}
-                    {activity.type === 'quiz' && <Target className="h-4 w-4 text-green-600" />}
-                    {activity.type === 'note' && <Edit3 className="h-4 w-4 text-purple-600" />}
-                    {activity.type === 'achievement' && <Award className="h-4 w-4 text-orange-600" />}
+                    {activity.type === 'summary_created' && <BookOpen className="h-4 w-4 text-blue-600" />}
+                    {activity.type === 'quiz_completed' && <Target className="h-4 w-4 text-green-600" />}
+                    {activity.type === 'note_added' && <Edit3 className="h-4 w-4 text-purple-600" />}
+                    {activity.type === 'achievement_earned' && <Award className="h-4 w-4 text-yellow-600" />}
+                    {activity.type === 'study_session' && <Clock className="h-4 w-4 text-indigo-600" />}
+                    {activity.type === 'ai_tool_used' && <Zap className="h-4 w-4 text-pink-600" />}
+                    {activity.type === 'login' && <Mail className="h-4 w-4 text-orange-600" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                    <p className="text-xs text-gray-600">{activity.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">{new Date(activity.timestamp).toLocaleString()}</p>
                   </div>
                 </div>
               ))}
+              {recentActivity.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No recent activity. Start using the platform to see your activity here!</p>
+              )}
             </div>
           </motion.div>
         </div>
@@ -507,7 +566,10 @@ const Profile = () => {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="bg-white rounded-2xl shadow-lg p-8 mt-8"
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Academic Information</h2>
+          <div className="flex items-center space-x-3 mb-6">
+            <GraduationCap className="h-6 w-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900">Academic Information</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Institution</label>
@@ -520,7 +582,7 @@ const Profile = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               ) : (
-                <p className="text-gray-900 py-2">{profileData.institution}</p>
+                <p className="text-gray-900 py-2">{profileData.institution || 'Not specified'}</p>
               )}
             </div>
             <div>
@@ -534,7 +596,7 @@ const Profile = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               ) : (
-                <p className="text-gray-900 py-2">{profileData.major}</p>
+                <p className="text-gray-900 py-2">{profileData.major || 'Not specified'}</p>
               )}
             </div>
             <div>
@@ -548,13 +610,51 @@ const Profile = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               ) : (
-                <p className="text-gray-900 py-2">{profileData.location}</p>
+                <p className="text-gray-900 py-2">{profileData.location || 'Not specified'}</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Member Since</label>
               <p className="text-gray-900 py-2">{profileData.joinedDate}</p>
             </div>
+          </div>
+          
+          {/* Study Stats */}
+          <div className="mt-8">
+            <div className="flex items-center space-x-3 mb-6">
+              <Clock className="h-6 w-6 text-purple-600" />
+              <h2 className="text-2xl font-bold text-gray-900">Study Statistics</h2>
+            </div>
+            
+            {studyStats && (studyStats.totalHours > 0 || studyStats.totalSessions > 0) ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <Clock className="h-5 w-5 text-purple-600" />
+                    <h3 className="font-semibold text-gray-900">Total Study Time</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-600">{studyStats.totalHours.toFixed(1)} hours</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <Target className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-semibold text-gray-900">Study Sessions</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-600">{studyStats.totalSessions}</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold text-gray-900">Productivity</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">{studyStats.averageProductivity.toFixed(1)}%</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No study data yet. Start studying to track your progress!</p>
+            )}
           </div>
         </motion.div>
 
