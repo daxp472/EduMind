@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Brain, Check, AlertCircle } from 'lucide-react';
+import { Mail, User, Eye, EyeOff, Brain, Check, AlertCircle, ArrowRight, Sparkles, Shield, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -28,7 +28,7 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -47,74 +47,49 @@ const Signup = () => {
     try {
       await signup(formData.name, formData.email, formData.password);
       setIsRegistered(true);
-      // The response type from signup is void, so we use a generic success message
-      setRegistrationMessage('Account created successfully! Please check your email for verification.');
-      toast.success('Account created successfully! Please check your email for verification.');
+      setRegistrationMessage('Neural link established. Please verify your identity via email.');
+      toast.success('Registration successful. Verify your email to proceed.');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.';
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed.';
       toast.error(errorMessage);
     }
   };
 
   const features = [
-    'AI-powered personalized learning',
-    'Smart note summarization',
-    'Adaptive quiz generation',
-    'Progress tracking & analytics',
-    '24/7 AI tutor support'
+    { title: 'Neural Summarization', desc: 'Context-aware document processing.', icon: Brain },
+    { title: 'Adaptive Learning', desc: 'AI paths tailored to your speed.', icon: Zap },
+    { title: 'Global Sync', desc: 'Study across all devices instantly.', icon: Shield },
   ];
 
   if (isRegistered) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10" />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-md w-full space-y-8"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full relative z-10"
         >
-          <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
-                <Mail className="h-12 w-12 text-white" />
-              </div>
+          <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/5 rounded-3xl p-10 text-center shadow-2xl">
+            <div className="inline-flex p-4 bg-indigo-500/20 rounded-2xl mb-6">
+              <Mail className="h-10 w-10 text-indigo-400" />
             </div>
-            
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Verify Your Email
-            </h2>
-            
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <div className="text-center">
-                <Check className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">{registrationMessage}</p>
-                <p className="text-sm text-gray-500 mb-6">
-                  Please check your email inbox (and spam folder) for a verification link.
+            <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">Identity Check</h2>
+            <div className="space-y-4 mb-8">
+              <p className="text-zinc-400 text-sm leading-relaxed">{registrationMessage}</p>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5 flex items-start gap-3 text-left">
+                <AlertCircle className="h-5 w-5 text-indigo-400 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-relaxed">
+                  Encryption link sent. Check your secure inbox (and spam) to activate your neural node.
                 </p>
-                
-                <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                  <div className="flex items-start">
-                    <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
-                    <p className="text-sm text-blue-700">
-                      Didn't receive the email? Check your spam folder or{' '}
-                      <button 
-                        onClick={() => setIsRegistered(false)}
-                        className="font-medium text-blue-600 hover:text-blue-800"
-                      >
-                        try again
-                      </button>
-                    </p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => navigate('/login')}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
-                >
-                  Go to Login
-                </button>
               </div>
             </div>
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all active:scale-95"
+            >
+              Back to Login
+            </button>
           </div>
         </motion.div>
       </div>
@@ -122,241 +97,184 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left Side - Features */}
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Mesh Glows */}
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-600/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] bg-purple-600/10 blur-[150px] rounded-full pointer-events-none" />
+
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
+        {/* Left Section */}
         <motion.div
-          initial={{ opacity: 0, x: -50 }}
+          initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="hidden lg:block"
+          transition={{ duration: 1 }}
+          className="hidden lg:block space-y-12"
         >
-          <div className="text-center lg:text-left">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Join the Future of
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                AI-Powered Learning
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-indigo-400">
+              <Sparkles size={12} />
+              Now in Private Beta
+            </div>
+            <h1 className="text-6xl font-black text-white tracking-tighter leading-[0.9]">
+              JOIN THE <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500">
+                NEURAL CORE
               </span>
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Transform your study experience with intelligent tools designed for modern learners.
+            <p className="text-zinc-500 text-lg font-medium leading-relaxed max-w-md">
+              Initialize your account to access high-fidelity study orchestration and AI execution environments.
             </p>
+          </div>
 
-            <div className="space-y-4">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="flex items-center space-x-3"
-                >
-                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                    <Check className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-gray-700">{feature}</span>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="mt-8 p-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl text-white">
-              <div className="flex items-center space-x-4">
-                <Brain className="h-12 w-12" />
-                <div>
-                  <h3 className="text-lg font-semibold">Start Free Today</h3>
-                  <p className="text-blue-100">No credit card required • 30-day trial</p>
+          <div className="space-y-8">
+            {features.map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.1 }}
+                className="flex items-center gap-5 group"
+              >
+                <div className="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 group-hover:scale-110">
+                  <f.icon size={24} />
                 </div>
+                <div>
+                  <h4 className="text-white font-black text-sm uppercase tracking-tight">{f.title}</h4>
+                  <p className="text-zinc-600 font-bold text-xs uppercase tracking-tighter">{f.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="pt-6">
+            <div className="p-1 bg-white/5 border border-white/5 rounded-3xl inline-flex items-center gap-4 pr-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white">
+                <Check size={20} />
               </div>
+              <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Security Protocol: AES-256 Validated</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Side - Form */}
+        {/* Form Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-md w-full mx-auto"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md mx-auto"
         >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4 lg:hidden">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
-                <Brain className="h-8 w-8 text-white" />
-              </div>
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Create Account
-            </h2>
-            <p className="text-gray-600">
-              Start your intelligent learning journey today
-            </p>
-          </div>
+          <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 
-          {/* Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-2">Create Record</h2>
+              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">New Researcher Onboarding</p>
+            </div>
+
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <User className="h-4 w-4 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" />
                   </div>
                   <input
                     id="name"
                     name="name"
                     type="text"
-                    autoComplete="name"
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Enter your full name"
+                    className="block w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm font-bold"
+                    placeholder="FULL NAME"
                   />
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+              <div className="space-y-2">
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Mail className="h-4 w-4 text-zinc-600 group-focus-within:text-indigo-400 transition-colors" />
                   </div>
                   <input
                     id="email"
                     name="email"
                     type="email"
-                    autoComplete="email"
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Enter your email"
+                    className="block w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-sm font-bold"
+                    placeholder="EMAIL ADDRESS"
                   />
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative group">
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Create a password"
+                    className="block w-full px-4 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-xs font-bold"
+                    placeholder="KEY"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-600 hover:text-white"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
-                    )}
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
+                <div className="relative group">
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Confirm your password"
+                    className="block w-full px-4 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-xs font-bold"
+                    placeholder="CONFIRM"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-600 hover:text-white"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
-                    )}
+                    {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center">
+              <div className="flex items-start p-1">
                 <input
                   id="terms"
                   name="terms"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="mt-1 h-3 w-3 bg-white/5 border-white/10 rounded"
                   required
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-blue-600 hover:text-blue-500 font-medium">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-blue-600 hover:text-blue-500 font-medium">
-                    Privacy Policy
-                  </Link>
+                <label htmlFor="terms" className="ml-3 block text-[9px] font-bold text-zinc-500 uppercase tracking-tighter leading-normal">
+                  I ACKNOWLEDGE THE <Link to="/terms" className="text-indigo-400">PROTOCOLS</Link> AND <Link to="/privacy" className="text-indigo-400">PRIVACY SHIELD</Link>
                 </label>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
+                className="w-full flex items-center justify-center py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-50"
               >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  'Create Account'
-                )}
+                {isLoading ? <div className="animate-spin h-5 w-5 border-b-2 border-black rounded-full" /> : 'AUTHORIZE ACCOUNT'}
               </button>
             </form>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Already have an account?</span>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <Link
-                  to="/login"
-                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-                >
-                  Sign in to your account
-                </Link>
-              </div>
+            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3">Existing Pulse?</p>
+              <Link to="/login" className="text-xs font-black text-indigo-400 hover:text-indigo-300 transition-colors uppercase flex items-center justify-center gap-2">
+                RESUME SESSION <ArrowRight size={14} />
+              </Link>
             </div>
           </div>
         </motion.div>

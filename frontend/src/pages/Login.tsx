@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Brain } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Brain, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -31,154 +31,146 @@ const Login = () => {
 
     try {
       await login(formData.email, formData.password);
-      toast.success('Welcome back! Login successful');
+      toast.success('Access Granted. Welcome back.');
       navigate('/dashboard');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
-      // Check if the error is related to email verification
-      if (errorMessage.includes('verify your email')) {
-        toast.error(errorMessage, { duration: 8000 });
-      } else {
-        toast.error(errorMessage);
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed.';
+      toast.error(errorMessage);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8 md:p-12 relative overflow-hidden">
+      {/* Background Animated Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-md w-full space-y-8"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="max-w-md w-full relative z-10"
       >
         {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
-              <Brain className="h-8 w-8 text-white" />
-            </div>
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back
+        <div className="text-center mb-10">
+          <motion.div
+            initial={{ y: -20 }}
+            animate={{ y: 0 }}
+            className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl shadow-indigo-500/20 mb-6"
+          >
+            <Brain className="h-8 w-8 text-white" />
+          </motion.div>
+          <h2 className="text-4xl font-black tracking-tighter text-white mb-2 uppercase">
+            Initialize Access
           </h2>
-          <p className="text-gray-600">
-            Sign in to continue your learning journey
+          <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">
+            <Sparkles size={12} className="text-indigo-400" />
+            Neural Academy Portal
           </p>
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        {/* Card */}
+        <div className="bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/5 p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
+
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                Identity (Email)
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-zinc-600 group-focus-within:text-indigo-500 transition-colors" />
                 </div>
                 <input
                   id="email"
                   name="email"
                   type="email"
-                  autoComplete="email"
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter your email"
+                  className="block w-full pl-12 pr-4 py-4 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/[0.07] transition-all font-medium"
+                  placeholder="name@university.edu"
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                Security Key
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-zinc-600 group-focus-within:text-indigo-500 transition-colors" />
                 </div>
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter your password"
+                  className="block w-full pl-12 pr-12 py-4 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:bg-white/[0.07] transition-all font-medium"
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-600 hover:text-white transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between px-1">
+              <label className="flex items-center group cursor-pointer">
                 <input
-                  id="remember-me"
-                  name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="hidden"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
+                <div className="w-4 h-4 rounded-md border border-white/10 flex items-center justify-center group-hover:border-indigo-500/50 transition-colors mr-2">
+                  <div className="w-2 h-2 rounded-sm bg-indigo-500 opacity-0 group-focus-within:opacity-100" />
+                </div>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter hover:text-zinc-300 transition-colors">Remember Pulse</span>
+              </label>
               <Link
                 to="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-tighter"
               >
-                Forgot password?
+                Reset Access?
               </Link>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
+              className="group relative w-full flex items-center justify-center py-4 px-4 border border-transparent text-xs font-black uppercase tracking-widest rounded-2xl text-black bg-white hover:bg-zinc-200 focus:outline-none transition-all transform active:scale-95 disabled:opacity-50 disabled:transform-none shadow-xl shadow-white/5"
             >
               {isLoading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
               ) : (
-                'Sign In'
+                <span className="flex items-center gap-2">
+                  Establish Connection <ArrowRight size={14} />
+                </span>
               )}
             </button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
-              </div>
-            </div>
-
-            <div className="mt-6 text-center">
-              <Link
-                to="/signup"
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-              >
-                Create your EduMind account
-              </Link>
-            </div>
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">New Researcher?</p>
+            <Link
+              to="/signup"
+              className="inline-flex items-center gap-2 text-xs font-black text-white px-6 py-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all hover:gap-3"
+            >
+              Register Account <ArrowRight size={14} className="text-indigo-500" />
+            </Link>
           </div>
         </div>
 
+        <p className="text-center mt-8 text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em]">
+          End-to-End Encrypted Session
+        </p>
       </motion.div>
     </div>
   );

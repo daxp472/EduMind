@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Brain, ArrowLeft } from 'lucide-react';
+import { Mail, Brain, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -15,7 +15,7 @@ const ForgotPassword = () => {
         e.preventDefault();
 
         if (!email) {
-            toast.error('Please enter your email address');
+            toast.error('Identity required.');
             return;
         }
 
@@ -30,12 +30,13 @@ const ForgotPassword = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to send reset email');
+                throw new Error(data.message || 'Failed to dispatch recovery link.');
             }
 
             setSubmitted(true);
+            toast.success('Recovery protocol initiated.');
         } catch (error: unknown) {
-            const msg = error instanceof Error ? error.message : 'Something went wrong';
+            const msg = error instanceof Error ? error.message : 'System malfunction.';
             toast.error(msg);
         } finally {
             setIsLoading(false);
@@ -43,68 +44,75 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 relative overflow-hidden">
+            {/* Mesh Glows */}
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full animate-pulse" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="max-w-md w-full space-y-8"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="max-w-md w-full relative z-10"
             >
                 {/* Header */}
-                <div className="text-center">
-                    <div className="flex justify-center mb-4">
-                        <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
-                            <Brain className="h-8 w-8 text-white" />
-                        </div>
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h2>
-                    <p className="text-gray-600">
-                        Enter your email and we'll send you a reset link
+                <div className="text-center mb-10">
+                    <motion.div
+                        initial={{ y: -20 }}
+                        animate={{ y: 0 }}
+                        className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-2xl shadow-indigo-500/20 mb-6"
+                    >
+                        <Brain className="h-8 w-8 text-white" />
+                    </motion.div>
+                    <h2 className="text-4xl font-black tracking-tighter text-white mb-2 uppercase">Recover Access</h2>
+                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2">
+                        <Sparkles size={12} className="text-indigo-400" />
+                        Neural Node Retrieval
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/5 p-8 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
+
                     {submitted ? (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             className="text-center py-4"
                         >
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Mail className="h-8 w-8 text-green-600" />
+                            <div className="w-16 h-16 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-indigo-400">
+                                <Mail className="h-8 w-8" />
                             </div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">Check Your Email</h3>
-                            <p className="text-gray-600 mb-6">
-                                If an account exists for <strong>{email}</strong>, we've sent a password reset link. Check your inbox (and spam folder).
+                            <h3 className="text-xl font-black text-white mb-4 uppercase tracking-tighter">Identity Broadcast Sent</h3>
+                            <p className="text-zinc-400 text-sm leading-relaxed mb-8">
+                                A recovery pulse was dispatched to <strong>{email}</strong>. Check your secure inbox.
                             </p>
                             <Link
                                 to="/login"
-                                className="inline-flex items-center text-blue-600 hover:text-blue-500 font-medium transition-colors"
+                                className="w-full inline-flex items-center justify-center gap-2 py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all active:scale-95"
                             >
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Back to Login
+                                <ArrowLeft className="h-4 w-4" />
+                                Return to Session
                             </Link>
                         </motion.div>
                     ) : (
                         <form className="space-y-6" onSubmit={handleSubmit}>
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Email Address
+                            <div className="space-y-2">
+                                <label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">
+                                    Identity Verified Email
                                 </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Mail className="h-5 w-5 text-zinc-600 group-focus-within:text-indigo-500 transition-colors" />
                                     </div>
                                     <input
                                         id="email"
                                         name="email"
                                         type="email"
-                                        autoComplete="email"
                                         required
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                        placeholder="Enter your email"
+                                        className="block w-full pl-12 pr-4 py-4 bg-white/5 border border-white/5 rounded-2xl text-white placeholder-zinc-700 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium"
+                                        placeholder="register@university.edu"
                                     />
                                 </div>
                             </div>
@@ -112,22 +120,24 @@ const ForgotPassword = () => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
+                                className="w-full flex items-center justify-center py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {isLoading ? (
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black" />
                                 ) : (
-                                    'Send Reset Link'
+                                    <span className="flex items-center gap-2">
+                                        Dispatch Pulse <ArrowRight size={14} />
+                                    </span>
                                 )}
                             </button>
 
-                            <div className="text-center">
+                            <div className="text-center pt-4 border-t border-white/5">
                                 <Link
                                     to="/login"
-                                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
+                                    className="inline-flex items-center text-xs font-black text-zinc-500 hover:text-white uppercase tracking-widest transition-colors gap-2"
                                 >
-                                    <ArrowLeft className="h-4 w-4 mr-1" />
-                                    Back to Login
+                                    <ArrowLeft className="h-4 w-4" />
+                                    ABORT OPERATION
                                 </Link>
                             </div>
                         </form>

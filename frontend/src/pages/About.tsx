@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Brain, Target, Users, Award, Lightbulb, Globe, Heart, Zap } from 'lucide-react';
+import { Brain, Target, Users, Lightbulb, Globe, Heart, Sparkles } from 'lucide-react';
 
 const About = () => {
   const values = [
@@ -88,24 +88,29 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
       {/* Hero Section */}
-      <section className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              About{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                EduMind
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8">
+              <Sparkles className="h-4 w-4 text-indigo-400" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-indigo-300">Our Identity</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
+              Architecting the <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
+                Future of Learning
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12">
-              We're on a mission to revolutionize education through artificial intelligence, 
+            <p className="text-xl text-zinc-400 max-w-3xl mx-auto mb-16 leading-relaxed">
+              We're on a mission to revolutionize education through artificial intelligence,
               making personalized learning accessible to every student, everywhere.
             </p>
           </motion.div>
@@ -118,11 +123,11 @@ const About = () => {
             className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
           >
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
+              <div key={index} className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm group hover:bg-white/10 transition-all duration-500">
+                <div className="text-3xl md:text-4xl font-black text-indigo-400 mb-2 group-hover:scale-110 transition-transform tracking-tighter">
                   {stat.number}
                 </div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
+                <div className="text-zinc-500 text-xs font-black uppercase tracking-widest">{stat.label}</div>
               </div>
             ))}
           </motion.div>
@@ -130,48 +135,58 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-20 bg-white">
+      <section className="py-32 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.8 }}
+              className="space-y-8"
             >
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                To democratize personalized education by harnessing the power of artificial intelligence, 
+              <h2 className="text-4xl font-black tracking-tight text-white uppercase tracking-tighter">Strategic Mission</h2>
+              <p className="text-lg text-zinc-400 leading-relaxed">
+                To democratize personalized education by harnessing the power of artificial intelligence,
                 ensuring every student has access to tools that adapt to their unique learning style and pace.
               </p>
-              <p className="text-lg text-gray-600 mb-8">
-                We believe that technology should enhance human potential, not replace it. Our AI-powered 
-                platform empowers students to learn more effectively while maintaining the human connection 
-                that makes education meaningful.
+              <p className="text-lg text-zinc-400 leading-relaxed">
+                We believe that technology should enhance human potential, not replace it. Our AI-powered
+                platform empowers students to learn more effectively while maintaining the human connection.
               </p>
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Target className="h-6 w-6 text-white" />
+              <div className="flex items-center space-x-6 p-6 rounded-3xl bg-white/5 border border-white/5">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <Target className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Our Goal</h3>
-                  <p className="text-gray-600">Transform 1 million learning journeys by 2025</p>
+                  <h3 className="font-bold text-white uppercase tracking-widest text-xs mb-1">Impact Goal</h3>
+                  <p className="text-indigo-300 font-medium">Transform 1 million learning journeys by 2025</p>
                 </div>
               </div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative"
+              className="relative group"
             >
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
-                <Brain className="h-16 w-16 mb-6" />
-                <h3 className="text-2xl font-bold mb-4">Our Vision</h3>
-                <p className="text-blue-100 leading-relaxed">
-                  A world where every student has access to personalized, AI-enhanced education 
+              <div className="absolute inset-0 bg-indigo-600/20 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-12 text-white overflow-hidden backdrop-blur-xl">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full flex items-center justify-center">
+                  <Brain className="h-12 w-12 text-indigo-500/50" />
+                </div>
+                <h3 className="text-3xl font-black mb-6 uppercase tracking-tight">Our Vision</h3>
+                <p className="text-zinc-400 leading-relaxed text-lg">
+                  A world where every student has access to personalized, AI-enhanced education
                   that adapts to their needs, accelerates their learning, and unlocks their full potential.
                 </p>
+                <div className="mt-10 flex gap-4">
+                  <div className="h-1 w-20 bg-indigo-500 rounded-full" />
+                  <div className="h-1 w-8 bg-indigo-500/30 rounded-full" />
+                  <div className="h-1 w-4 bg-indigo-500/10 rounded-full" />
+                </div>
               </div>
             </motion.div>
           </div>
@@ -179,19 +194,20 @@ const About = () => {
       </section>
 
       {/* Values */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+      <section className="py-32 bg-zinc-950/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Our Core Values
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter">
+              Core Directives
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              The principles that guide everything we do and every decision we make
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+              The principles that guide every neural optimization and architectural decision.
             </p>
           </motion.div>
 
@@ -201,16 +217,17 @@ const About = () => {
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center"
+                className="bg-white/5 p-8 rounded-[2rem] border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group"
               >
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <value.icon className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform group-hover:bg-indigo-500/20">
+                  <value.icon size={28} className="text-indigo-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-bold text-white mb-4">
                   {value.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-zinc-500 text-sm leading-relaxed">
                   {value.description}
                 </p>
               </motion.div>
@@ -220,18 +237,19 @@ const About = () => {
       </section>
 
       {/* Team */}
-      <section className="py-20 bg-white">
+      <section className="py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-20"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Team
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter">
+              The Architects
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
               Passionate educators, technologists, and researchers working together to transform learning
             </p>
           </motion.div>
@@ -242,19 +260,23 @@ const About = () => {
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center group"
+                className="bg-[#0a0a0a] p-6 rounded-[2.5rem] border border-white/5 hover:border-indigo-500/30 transition-all duration-300 group text-center"
               >
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-24 h-24 rounded-full mx-auto mb-4 object-cover group-hover:scale-110 transition-transform duration-300"
-                />
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                <div className="relative mb-6 inline-block">
+                  <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-32 h-32 rounded-[2rem] mx-auto object-cover relative group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <h3 className="text-xl font-black text-white mb-1 uppercase tracking-tight">
                   {member.name}
                 </h3>
-                <p className="text-blue-600 font-medium mb-3">{member.role}</p>
-                <p className="text-gray-600 text-sm leading-relaxed">{member.bio}</p>
+                <p className="text-indigo-400 text-xs font-black uppercase tracking-widest mb-4">{member.role}</p>
+                <p className="text-zinc-500 text-sm leading-relaxed mb-4">{member.bio}</p>
               </motion.div>
             ))}
           </div>
@@ -262,43 +284,45 @@ const About = () => {
       </section>
 
       {/* Timeline */}
-      <section className="py-20 bg-gradient-to-r from-blue-900 to-purple-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-32 relative overflow-hidden bg-zinc-950">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-600/[0.03] blur-[150px] rounded-full" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-24"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Our Journey
+            <h2 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter">
+              Development Log
             </h2>
-            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
               Key milestones in our mission to transform education through AI
             </p>
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-px h-full w-0.5 bg-white/20"></div>
-            <div className="space-y-12">
+            <div className="absolute left-1/2 transform -translate-x-px h-full w-[1px] bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent hidden md:block" />
+            <div className="space-y-24">
               {milestones.map((milestone, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className={`relative flex items-center ${
-                    index % 2 === 0 ? 'justify-start' : 'justify-end'
-                  }`}
+                  className={`relative flex items-center ${index % 2 === 0 ? 'md:justify-start' : 'md:justify-end'
+                    } justify-center`}
                 >
-                  <div className={`w-5/12 ${index % 2 === 0 ? 'text-right pr-8' : 'text-left pl-8'}`}>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6">
-                      <div className="text-2xl font-bold text-blue-200 mb-2">{milestone.year}</div>
-                      <h3 className="text-xl font-semibold mb-2">{milestone.title}</h3>
-                      <p className="text-blue-100">{milestone.description}</p>
+                  <div className={`md:w-5/12 w-full ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'} text-center`}>
+                    <div className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-white/5 hover:border-white/10 transition-all group">
+                      <div className="text-4xl font-black text-indigo-500/30 group-hover:text-indigo-400 transition-colors mb-2 tracking-tighter">{milestone.year}</div>
+                      <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tight">{milestone.title}</h3>
+                      <p className="text-zinc-500 leading-relaxed">{milestone.description}</p>
                     </div>
                   </div>
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-400 rounded-full border-4 border-white"></div>
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-3 h-3 bg-indigo-500 rounded-full border-4 border-[#050505] hidden md:block" />
                 </motion.div>
               ))}
             </div>
@@ -307,25 +331,26 @@ const About = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-40 relative">
+        <div className="max-w-4xl mx-auto px-4 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Join Our Mission
+            <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter uppercase">
+              Join the Mission
             </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-zinc-400 mb-12 max-w-2xl mx-auto leading-relaxed">
               Be part of the educational revolution. Together, we can make personalized learning accessible to everyone.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                Start Learning Today
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <button className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all transform hover:scale-105 active:scale-95 shadow-2xl">
+                Start Session
               </button>
-              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold text-lg hover:border-blue-600 hover:text-blue-600 transition-all">
-                Join Our Team
+              <button className="px-10 py-5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/5 transition-all">
+                Integrate as Talent
               </button>
             </div>
           </motion.div>
