@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Brain, RotateCcw, Eye, EyeOff, Download, Share2, Shuffle } from 'lucide-react';
+import { CreditCard, Brain, RotateCcw, Eye, EyeOff, Download, Shuffle, Sparkles } from 'lucide-react';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 
 interface Flashcard {
   id: number;
@@ -12,7 +13,8 @@ interface Flashcard {
 }
 
 const FlashcardGenerator = () => {
-  const [topic, setTopic] = useState('');
+  const location = useLocation();
+  const [topic, setTopic] = useState(location.state?.initialText || '');
   const [difficulty, setDifficulty] = useState('medium');
   const [cardCount, setCardCount] = useState(10);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -88,258 +90,243 @@ const FlashcardGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 md:py-20">
 
-        {/* Header */}
+        {/* Neural Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-8"
+          className="mb-12"
         >
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl">
-              <CreditCard className="h-8 w-8 text-white" />
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-purple-500/10 rounded-lg">
+              <CreditCard className="h-6 w-6 text-purple-500" />
             </div>
+            <span className="text-sm font-bold tracking-widest text-purple-500 uppercase">Memory Protocol</span>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            AI Flashcard Generator
+          <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter uppercase italic">
+            Cognitive <span className="text-purple-500">Buffer</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Create intelligent flashcards from any topic with our AI-powered system
+          <p className="text-zinc-500 text-lg font-medium max-w-2xl">
+            Initialize high-retention memory nodes. Quantize complex datasets into semantic fragments for rapid neural ingestion.
           </p>
         </motion.div>
 
         {!studyMode ? (
-          /* Setup Mode */
+          /* Parameter Initialization */
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="max-w-2xl mx-auto"
+            className="max-w-3xl mx-auto"
           >
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Flashcards</h2>
+            <div className="bg-zinc-900/50 backdrop-blur-xl rounded-3xl p-10 border border-white/5 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <div className="space-y-6">
+              <h2 className="text-2xl font-bold mb-8 flex items-center text-white">
+                <Brain className="h-6 w-6 mr-3 text-purple-500" />
+                Buffer Parameters
+              </h2>
+
+              <div className="space-y-8 relative z-10">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Topic or Subject
-                  </label>
+                  <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-2 ml-1">Ingestion Topic</label>
                   <input
                     type="text"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="e.g., Machine Learning, World History, Biology..."
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="e.g., Astrophysics, Advanced Linguistics..."
+                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-medium placeholder:text-zinc-700"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Difficulty Level
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['easy', 'medium', 'hard'].map((level) => (
-                      <button
-                        key={level}
-                        onClick={() => setDifficulty(level)}
-                        className={`p-3 rounded-xl border-2 font-medium capitalize transition-colors ${difficulty === level
-                          ? 'border-pink-500 bg-pink-50 text-pink-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                      >
-                        {level}
-                      </button>
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-3 ml-1">Fidelity Grade</label>
+                    <div className="flex p-1 bg-black/40 border border-white/5 rounded-2xl">
+                      {['easy', 'medium', 'hard'].map((level) => (
+                        <button
+                          key={level}
+                          onClick={() => setDifficulty(level)}
+                          className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${difficulty === level
+                            ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
+                            : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                        >
+                          {level}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Cards: {cardCount}
-                  </label>
-                  <input
-                    type="range"
-                    min="5"
-                    max="25"
-                    value={cardCount}
-                    onChange={(e) => setCardCount(parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
-                    <span>5</span>
-                    <span>25</span>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-3 ml-1">Fragment Count</label>
+                    <div className="flex items-center space-x-4 h-[52px]">
+                      <input
+                        type="range"
+                        min="5"
+                        max="25"
+                        value={cardCount}
+                        onChange={(e) => setCardCount(parseInt(e.target.value))}
+                        className="flex-grow h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                      />
+                      <span className="text-lg font-black text-purple-500 min-w-[3ch]">{cardCount}</span>
+                    </div>
                   </div>
                 </div>
 
                 <button
                   onClick={generateFlashcards}
                   disabled={isGenerating || !topic.trim()}
-                  className="w-full flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-pink-700 hover:to-purple-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                  className="w-full relative group/btn overflow-hidden rounded-2xl p-px mt-4"
                 >
-                  {isGenerating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      <span>Generating Flashcards...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="h-6 w-6" />
-                      <span>Generate AI Flashcards</span>
-                    </>
-                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 animate-gradient-x" />
+                  <div className="relative bg-zinc-900 group-hover:bg-transparent transition-colors rounded-[15px] py-5 px-6 flex items-center justify-center font-bold uppercase tracking-[0.2em] text-sm text-white">
+                    {isGenerating ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      >
+                        <Brain className="h-6 w-6" />
+                      </motion.div>
+                    ) : (
+                      <>
+                        <Sparkles className="h-5 w-5 mr-3 text-purple-500" />
+                        Execute Generation
+                      </>
+                    )}
+                  </div>
                 </button>
               </div>
             </div>
           </motion.div>
         ) : (
-          /* Study Mode */
+          /* Study Visualization */
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
             className="max-w-4xl mx-auto"
           >
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Card {currentCard + 1} of {flashcards.length}
-                </span>
-                <div className="flex space-x-2">
+            {/* Progress Telemetry */}
+            <div className="mb-12">
+              <div className="flex justify-between items-end mb-4">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Session In Progress</span>
+                  <span className="text-2xl font-black text-white">
+                    FRAGMENT <span className="text-purple-500">{(currentCard + 1).toString().padStart(2, '0')}</span>
+                    <span className="text-zinc-700 mx-2">/</span>
+                    <span className="text-zinc-500">{flashcards.length.toString().padStart(2, '0')}</span>
+                  </span>
+                </div>
+                <div className="flex space-x-4">
                   <button
                     onClick={shuffleCards}
-                    className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="p-3 bg-zinc-900 border border-white/5 text-zinc-500 rounded-xl hover:text-white transition-all group"
+                    title="Shuffle Fragments"
                   >
-                    <Shuffle className="h-4 w-4" />
-                    <span className="text-sm">Shuffle</span>
+                    <Shuffle className="h-5 w-5 group-hover:rotate-12 transition-transform" />
                   </button>
                   <button
-                    onClick={() => toast.success('Flashcards downloaded!')}
-                    className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    onClick={() => toast.success('Telemetry Exported')}
+                    className="p-3 bg-zinc-900 border border-white/5 text-zinc-500 rounded-xl hover:text-white transition-all group"
+                    title="Export Protocol"
                   >
-                    <Download className="h-4 w-4" />
-                    <span className="text-sm">Export</span>
+                    <Download className="h-5 w-5 group-hover:-translate-y-1 transition-transform" />
                   </button>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentCard + 1) / flashcards.length) * 100}%` }}
-                ></div>
+              <div className="w-full bg-zinc-900 rounded-full h-1 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((currentCard + 1) / flashcards.length) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full"
+                />
               </div>
             </div>
 
-            {/* Flashcard */}
-            <div className="mb-8">
-              <div
-                className="relative w-full h-80 cursor-pointer"
+            {/* Neural Fragment Card */}
+            <div className="mb-12 perspective-lg">
+              <motion.div
+                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                transition={{ duration: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
+                className="relative w-full h-[400px] cursor-pointer transform-style-preserve-3d"
                 onClick={() => setIsFlipped(!isFlipped)}
               >
-                <div className={`absolute inset-0 w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-                  {/* Front */}
-                  <div className="absolute inset-0 w-full h-full backface-hidden">
-                    <div className="bg-white rounded-2xl shadow-xl p-8 h-full flex flex-col justify-center items-center border-l-4 border-pink-500">
-                      <div className="text-center">
-                        <div className="text-sm text-pink-600 font-medium mb-4">
-                          {flashcards[currentCard]?.category}
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                          {flashcards[currentCard]?.front}
-                        </h3>
-                        <div className="flex items-center justify-center space-x-2 text-gray-500">
-                          <Eye className="h-5 w-5" />
-                          <span className="text-sm">Click to reveal answer</span>
-                        </div>
+                {/* Front: Knowledge Node */}
+                <div className="absolute inset-0 w-full h-full backface-hidden">
+                  <div className="bg-zinc-900/50 backdrop-blur-xl rounded-[40px] p-12 h-full flex flex-col justify-center items-center border border-white/5 relative group">
+                    <div className="absolute top-8 left-8">
+                      <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">{flashcards[currentCard]?.category}</span>
                       </div>
                     </div>
-                  </div>
+                    <div className="absolute top-8 right-8 text-zinc-800">
+                      <Brain className="h-10 w-10 opacity-20" />
+                    </div>
 
-                  {/* Back */}
-                  <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
-                    <div className="bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-2xl shadow-xl p-8 h-full flex flex-col justify-center items-center">
-                      <div className="text-center">
-                        <div className="text-pink-200 font-medium mb-4 text-sm">
-                          Answer
-                        </div>
-                        <p className="text-lg leading-relaxed mb-6">
-                          {flashcards[currentCard]?.back}
-                        </p>
-                        <div className="flex items-center justify-center space-x-2 text-pink-200">
-                          <EyeOff className="h-5 w-5" />
-                          <span className="text-sm">Click to hide answer</span>
-                        </div>
-                      </div>
+                    <div className="text-center max-w-xl">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-8 italic">Memory Node Input</p>
+                      <h3 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tighter uppercase italic">
+                        {flashcards[currentCard]?.front}
+                      </h3>
+                    </div>
+
+                    <div className="absolute bottom-8 text-zinc-600 animate-pulse">
+                      <Eye className="h-5 w-5" />
                     </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Back: Quantized Insight */}
+                <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
+                  <div className="bg-gradient-to-br from-zinc-900 to-indigo-950 rounded-[40px] p-12 h-full flex flex-col justify-center items-center border border-white/10 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+
+                    <div className="text-center max-w-xl relative z-10">
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-8 italic">Synthesized Insight</p>
+                      <p className="text-xl md:text-2xl font-bold text-white leading-relaxed">
+                        {flashcards[currentCard]?.back}
+                      </p>
+                    </div>
+
+                    <div className="absolute bottom-8 text-indigo-400">
+                      <EyeOff className="h-5 w-5" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between items-center mb-8">
-              <button
-                onClick={prevCard}
-                disabled={currentCard === 0}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
-              >
-                Previous
-              </button>
-
-              <div className="flex space-x-4">
+            {/* Navigation & Controls */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+              <div className="flex items-center space-x-4 order-2 md:order-1">
                 <button
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  className="px-6 py-3 bg-pink-600 text-white rounded-xl font-medium hover:bg-pink-700 transition-colors"
+                  onClick={prevCard}
+                  disabled={currentCard === 0}
+                  className="px-8 py-4 bg-zinc-900 border border-white/5 text-zinc-400 rounded-2xl font-black uppercase tracking-widest text-xs hover:text-white transition-all disabled:opacity-20"
                 >
-                  {isFlipped ? 'Show Question' : 'Show Answer'}
+                  Previous Node
+                </button>
+                <button
+                  onClick={nextCard}
+                  disabled={currentCard === flashcards.length - 1}
+                  className="px-8 py-4 bg-zinc-900 border border-white/5 text-zinc-400 rounded-2xl font-black uppercase tracking-widest text-xs hover:text-white transition-all disabled:opacity-20"
+                >
+                  Next Node
                 </button>
               </div>
 
-              <button
-                onClick={nextCard}
-                disabled={currentCard === flashcards.length - 1}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-
-            {/* Study Actions */}
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={resetStudy}
-                className="flex items-center space-x-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition-colors"
-              >
-                <RotateCcw className="h-5 w-5" />
-                <span>New Set</span>
-              </button>
-              <button
-                onClick={() => toast.success('Flashcards shared!')}
-                className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
-              >
-                <Share2 className="h-5 w-5" />
-                <span>Share Set</span>
-              </button>
-            </div>
-
-            {/* Study Stats */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl p-6 text-center shadow-lg">
-                <div className="text-2xl font-bold text-pink-600 mb-2">{flashcards.length}</div>
-                <div className="text-gray-600">Total Cards</div>
-              </div>
-              <div className="bg-white rounded-xl p-6 text-center shadow-lg">
-                <div className="text-2xl font-bold text-purple-600 mb-2">{currentCard + 1}</div>
-                <div className="text-gray-600">Current Card</div>
-              </div>
-              <div className="bg-white rounded-xl p-6 text-center shadow-lg">
-                <div className="text-2xl font-bold text-blue-600 mb-2">
-                  {Math.round(((currentCard + 1) / flashcards.length) * 100)}%
-                </div>
-                <div className="text-gray-600">Progress</div>
+              <div className="order-1 md:order-2">
+                <button
+                  onClick={resetStudy}
+                  className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-sm hover:bg-purple-500 hover:text-white transition-all flex items-center group shadow-xl hover:shadow-purple-500/20"
+                >
+                  <RotateCcw className="h-4 w-4 mr-3 group-hover:rotate-180 transition-transform duration-500" />
+                  Re-initialize
+                </button>
               </div>
             </div>
           </motion.div>
