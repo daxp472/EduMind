@@ -88,7 +88,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
-      <div className="max-w-7xl auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 md:py-20">
 
         {/* Dynamic Header */}
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">

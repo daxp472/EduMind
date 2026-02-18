@@ -164,15 +164,15 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 md:py-20">
 
         {/* Profile Info Glass Card */}
-        <section className="relative mb-12">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-[100px] -z-10" />
+        <section className="relative mb-16">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-[120px] -z-10" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-zinc-900/50 border border-white/5 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl flex flex-col md:flex-row gap-10 items-center md:items-start"
+            className="bg-zinc-900/40 border border-white/5 rounded-[3.5rem] p-10 md:p-16 backdrop-blur-3xl flex flex-col lg:flex-row gap-12 items-center lg:items-start"
           >
             <div className="relative group">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl flex items-center justify-center text-4xl md:text-5xl font-black shadow-2xl overflow-hidden">
