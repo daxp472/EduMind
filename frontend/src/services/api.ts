@@ -117,20 +117,43 @@ export const authAPI = {
 
 // AI Tools API
 export const aiAPI = {
-  // Text summarization
-  summarizeText: async (textData: { text: string; type?: string; length?: string }, token: string) => {
+  // Text or File summarization
+  summarizeText: async (data: any, token: string) => {
+    const isFormData = data instanceof FormData;
     const response = await fetch(`${API_BASE_URL}/ai/summarize`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       },
-      body: JSON.stringify(textData),
+      body: isFormData ? data : JSON.stringify(data),
     });
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to generate summary');
+    }
+
+    return response.json();
+  },
+
+  // AI Tutor / Question answering
+  askTutor: async (tutorData: { message: string; context?: string }, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/ai/tutor`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: tutorData.message,
+        context: tutorData.context
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get AI response');
     }
 
     return response.json();

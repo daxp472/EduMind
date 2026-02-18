@@ -77,12 +77,28 @@ const parseResponse = (tool, rawText) => {
 // Call OpenAI API
 const callOpenAI = async (service, tool, params, startTime) => {
   const prompt = buildPrompt(tool, params);
+  const messages = [{ role: 'user', content: [{ type: 'text', text: prompt }] }];
+
+  // Add image/file if provided (GPT-4o style)
+  if (params.file) {
+    if (params.file.mimetype.startsWith('image/')) {
+      messages[0].content.push({
+        type: 'image_url',
+        image_url: { url: `data:${params.file.mimetype};base64,${params.file.buffer.toString('base64')}` }
+      });
+    } else {
+      // For non-image files, we might need a different approach or just inform the user
+      // For simplicity, we'll try to treat it as text if it's a PDF/Text file
+      // In a more robust version, we'd use an assistant with file search or OCR
+      messages[0].content[0].text += `\n\n[Attached File Content]: ${params.file.buffer.toString('utf-8').slice(0, 10000)}`;
+    }
+  }
 
   const response = await axios.post(
     `${service.baseUrl}/chat/completions`,
     {
       model: service.model,
-      messages: [{ role: 'user', content: prompt }],
+      messages: messages,
       temperature: 0.7
     },
     {
@@ -90,7 +106,7 @@ const callOpenAI = async (service, tool, params, startTime) => {
         'Authorization': `Bearer ${service.apiKey}`,
         'Content-Type': 'application/json'
       },
-      timeout: 30000
+      timeout: 60000 // Increased for file processing
     }
   );
 
@@ -107,16 +123,29 @@ const callOpenAI = async (service, tool, params, startTime) => {
 // Call Gemini API
 const callGemini = async (service, tool, params, startTime) => {
   const prompt = buildPrompt(tool, params);
+  const contents = {
+    parts: [{ text: prompt }]
+  };
+
+  // Add file if provided
+  if (params.file) {
+    contents.parts.push({
+      inline_data: {
+        mime_type: params.file.mimetype,
+        data: params.file.buffer.toString('base64')
+      }
+    });
+  }
 
   const response = await axios.post(
     `${service.baseUrl}/models/${service.model}:generateContent?key=${service.apiKey}`,
     {
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [contents],
       generationConfig: { temperature: 0.7 }
     },
     {
       headers: { 'Content-Type': 'application/json' },
-      timeout: 30000
+      timeout: 60000
     }
   );
 
@@ -183,27 +212,28 @@ const tryAIServices = async (tool, params) => {
   throw lastError || new Error('All AI services failed');
 };
 
-// @desc    Summarize text
+// @desc    Summarize text or file
 // @route   POST /api/ai/summarize
 // @access  Private/Guest
 exports.summarizeText = async (req, res, next) => {
   try {
     const { text, type = 'general', length = 'medium' } = req.body;
+    const file = req.file;
 
-    if (!text || text.trim().length < 10) {
+    if (!text && !file) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide text to summarize (minimum 10 characters)'
+        message: 'Please provide text or upload a file to summarize'
       });
     }
 
-    const { result, serviceName } = await tryAIServices('summarize', { text, type, length });
+    const { result, serviceName } = await tryAIServices('summarize', { text, type, length, file });
 
     // Log the request
     await AIRequest.create({
       user: req.user.id === 'guest' ? null : req.user.id,
       tool: 'summarizer',
-      input: text,
+      input: file ? `[File: ${file.originalname}] ${text || ''}` : text,
       output: result.summary,
       aiService: serviceName,
       tokensUsed: result.tokensUsed || 0,
@@ -218,7 +248,7 @@ exports.summarizeText = async (req, res, next) => {
         await user.addActivity({
           type: 'ai_tool_used',
           title: 'AI Summarizer Used',
-          description: `Summarized ${type} text (${length} length)`,
+          description: `Summarized ${file ? 'document' : type + ' text'} (${length} length)`,
           timestamp: Date.now()
         });
       }
@@ -236,7 +266,7 @@ exports.summarizeText = async (req, res, next) => {
       await AIRequest.create({
         user: req.user.id === 'guest' ? null : req.user.id,
         tool: 'summarizer',
-        input: req.body.text,
+        input: req.file ? `[File: ${req.file.originalname}]` : req.body.text,
         aiService: 'unknown',
         success: false,
         error: err.message
