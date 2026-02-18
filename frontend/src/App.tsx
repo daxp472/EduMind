@@ -311,19 +311,24 @@ function App() {
       <Router>
         <ScrollToTop />
         <ScrollProgress />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
           <Navbar />
-          <main className="pt-16">
+          <main>
             <AnimatedRoutes />
           </main>
           <Footer />
           <Toaster
-            position="top-right"
+            position="bottom-right"
             toastOptions={{
               duration: 4000,
+              className: 'premium-toast',
               style: {
-                background: '#1e293b',
+                background: '#0a0a0a',
                 color: '#fff',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: '1rem',
+                fontSize: '0.875rem',
+                fontWeight: '600',
               },
             }}
           />

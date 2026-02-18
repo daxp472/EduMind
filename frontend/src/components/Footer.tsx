@@ -1,177 +1,150 @@
 import { Link } from 'react-router-dom';
-import { Brain, Mail, Phone, MapPin, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
+import { Brain, Mail, Phone, MapPin, Twitter, Facebook, Linkedin, Instagram, ArrowRight, Sparkles } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerSections = [
     {
-      title: 'Product',
+      title: 'Platform',
       links: [
         { name: 'Features', path: '/features' },
-        { name: 'AI Tools', path: '/ai-tools/summarizer' },
-        { name: 'Study Tools', path: '/study/rooms' },
-        { name: 'Analytics', path: '/analytics/learning' },
+        { name: 'Neural Tools', path: '/ai-tools/summarizer' },
         { name: 'Pricing', path: '/pricing' },
+        { name: 'Analytics', path: '/analytics/learning' },
+      ]
+    },
+    {
+      title: 'Resources',
+      links: [
+        { name: 'Documentation', path: '/help' },
+        { name: 'API Status', path: '#' },
+        { name: 'Community', path: '/community' },
+        { name: 'Research', path: '#' },
       ]
     },
     {
       title: 'Company',
       links: [
-        { name: 'About Us', path: '/about' },
+        { name: 'About', path: '/about' },
+        { name: 'Careers', path: '#' },
         { name: 'Contact', path: '/contact' },
-        { name: 'Help Center', path: '/help' },
-        { name: 'FAQ', path: '/faq' },
-      ]
-    },
-    {
-      title: 'Legal',
-      links: [
-        { name: 'Privacy Policy', path: '/privacy' },
-        { name: 'Terms of Service', path: '/terms' },
+        { name: 'Privacy', path: '/privacy' },
       ]
     }
   ];
 
   return (
-    <footer className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+    <footer className="bg-[#050505] text-white border-t border-white/5 overflow-hidden relative">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-16 mb-20">
           {/* Brand Section */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
+          <div className="lg:col-span-2 space-y-8">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg shadow-indigo-500/20 group-hover:rotate-12 transition-transform duration-500">
                 <Brain className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold">EduMind</span>
-            </div>
-            <p className="text-gray-300 mb-6 max-w-md leading-relaxed">
-              Revolutionizing education with AI-powered learning tools. Enhance your study experience
-              with intelligent assistance, personalized content, and advanced analytics.
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tighter">EDUMIND</span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-zinc-500">Intelligence Accelerated</span>
+              </div>
+            </Link>
+
+            <p className="text-zinc-400 text-sm leading-relaxed max-w-sm">
+              Architecting the future of cognition. Leveraging neural networks to provide
+              high-fidelity educational tools for the modern scholar.
             </p>
 
-            {/* Social Links */}
-            <div className="flex space-x-4 mb-6">
-              <a
-                href="#"
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300"
-                aria-label="Twitter"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
-
-            {/* Newsletter - Optional */}
-            <div className="mt-6">
-              <p className="text-sm text-gray-300 mb-2">Stay updated with our latest features</p>
-              <div className="flex space-x-2">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="flex-1 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all">
-                  Subscribe
-                </button>
-              </div>
+            <div className="flex space-x-4">
+              {[Twitter, Instagram, Linkedin, Facebook].map((Icon, idx) => (
+                <a
+                  key={idx}
+                  href="#"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-zinc-400 hover:text-white transition-all duration-300"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
           {/* Footer Links */}
-          {footerSections.map((section, index) => (
-            <div key={index}>
-              <h3 className="text-lg font-semibold mb-4">{section.title}</h3>
-              <ul className="space-y-3">
-                {section.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    <Link
-                      to={link.path}
-                      className="text-gray-300 hover:text-white transition-colors duration-200 text-sm"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+          <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-12">
+            {footerSections.map((section, index) => (
+              <div key={index} className="space-y-6">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                  {section.title}
+                </h3>
+                <ul className="space-y-4">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <Link
+                        to={link.path}
+                        className="text-zinc-400 hover:text-white transition-colors duration-200 text-xs font-bold"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
 
-        {/* Contact Info */}
-        <div className="border-t border-white/10 pt-8 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500/20 group-hover:bg-blue-500/30 transition-all">
-                <Mail className="h-5 w-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Email Us</p>
-                <a href="mailto:support@edumind.ai" className="text-gray-200 hover:text-white transition-colors">
-                  support@edumind.ai
-                </a>
-              </div>
+          {/* Newsletter Section */}
+          <div className="lg:col-span-1 space-y-6">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+              Waitlist
+            </h3>
+            <div className="relative group">
+              <input
+                type="email"
+                placeholder="Enter email"
+                className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
+              />
+              <button className="absolute right-2 top-2 p-1 text-indigo-400 hover:text-white transition-colors">
+                <ArrowRight size={18} />
+              </button>
             </div>
-            <div className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500/20 group-hover:bg-blue-500/30 transition-all">
-                <Phone className="h-5 w-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Call Us</p>
-                <a href="tel:+15551234567" className="text-gray-200 hover:text-white transition-colors">
-                  +1 (555) 123-4567
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500/20 group-hover:bg-blue-500/30 transition-all">
-                <MapPin className="h-5 w-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Visit Us</p>
-                <p className="text-gray-200">San Francisco, CA</p>
-              </div>
+            <div className="flex items-center gap-2 text-[8px] font-black text-zinc-600 uppercase tracking-widest">
+              <Sparkles size={10} className="text-amber-500" />
+              Join 10k+ researchers
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
-              &copy; {currentYear} EduMind. All rights reserved. Powered by AI innovation.
-            </p>
-            <div className="flex space-x-6 text-sm">
-              <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
-                Privacy
-              </Link>
-              <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
-                Terms
-              </Link>
-              <Link to="/help" className="text-gray-400 hover:text-white transition-colors">
-                Support
-              </Link>
+        {/* Contact Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-12 border-t border-white/5">
+          {[
+            { label: 'Network', value: 'support@edumind.ai', icon: Mail },
+            { label: 'Inbound', value: '+1 (555) NEURAL', icon: Phone },
+            { label: 'Hq', value: 'Silicon Valley, CA', icon: MapPin },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center space-x-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.02] hover:bg-white/5 transition-colors group">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                <item.icon size={18} />
+              </div>
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600">{item.label}</p>
+                <p className="text-xs font-bold text-zinc-300">{item.value}</p>
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="flex flex-col md:flex-row justify-between items-center mt-20 pt-8 border-t border-white/5 gap-6">
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+            &copy; {currentYear} EduMind Labs <span className="w-1 h-1 bg-zinc-800 rounded-full" /> All protocols secured
+          </p>
+          <div className="flex gap-8">
+            {['Status', 'Security', 'Compliance'].map((text, i) => (
+              <a key={i} href="#" className="text-[10px] font-bold text-zinc-600 hover:text-white uppercase tracking-tighter transition-colors">
+                {text}
+              </a>
+            ))}
           </div>
         </div>
       </div>
