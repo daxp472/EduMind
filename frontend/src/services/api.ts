@@ -12,12 +12,12 @@ export const authAPI = {
       },
       body: JSON.stringify(userData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Registration failed');
     }
-    
+
     return response.json();
   },
 
@@ -30,12 +30,12 @@ export const authAPI = {
       },
       body: JSON.stringify(credentials),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Login failed');
     }
-    
+
     return response.json();
   },
 
@@ -48,12 +48,12 @@ export const authAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch user data');
     }
-    
+
     return response.json();
   },
 
@@ -67,12 +67,12 @@ export const authAPI = {
       },
       body: JSON.stringify(userData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update user details');
     }
-    
+
     return response.json();
   },
 
@@ -86,15 +86,15 @@ export const authAPI = {
       },
       body: JSON.stringify(passwordData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update password');
     }
-    
+
     return response.json();
   },
-  
+
   // Request student verification
   requestStudentVerification: async (verificationData: { studentIdCard: string; studentIdCardSelfie: string }, token: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/request-student-verification`, {
@@ -105,12 +105,12 @@ export const authAPI = {
       },
       body: JSON.stringify(verificationData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to request student verification');
     }
-    
+
     return response.json();
   }
 };
@@ -127,12 +127,12 @@ export const aiAPI = {
       },
       body: JSON.stringify(textData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to generate summary');
     }
-    
+
     return response.json();
   },
 
@@ -146,12 +146,50 @@ export const aiAPI = {
       },
       body: JSON.stringify(quizData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to generate quiz');
     }
-    
+
+    return response.json();
+  },
+
+  // Flashcard generation
+  generateFlashcards: async (flashcardData: { text: string; numCards?: number }, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/ai/flashcards`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(flashcardData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to generate flashcards');
+    }
+
+    return response.json();
+  },
+
+  // Study plan generation
+  generateStudyPlan: async (planData: { subjects: string[]; timeAvailable: number; goals?: string }, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/ai/study-planner`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(planData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to generate study plan');
+    }
+
     return response.json();
   },
 };
@@ -167,12 +205,12 @@ export const studyAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch study materials');
     }
-    
+
     return response.json();
   },
 
@@ -185,12 +223,12 @@ export const studyAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch study material');
     }
-    
+
     return response.json();
   },
 
@@ -204,12 +242,12 @@ export const studyAPI = {
       },
       body: JSON.stringify(materialData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to create study material');
     }
-    
+
     return response.json();
   },
 
@@ -223,12 +261,12 @@ export const studyAPI = {
       },
       body: JSON.stringify(materialData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update study material');
     }
-    
+
     return response.json();
   },
 
@@ -241,12 +279,12 @@ export const studyAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to delete study material');
     }
-    
+
     return response.json();
   },
 };
@@ -262,12 +300,12 @@ export const analyticsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch learning analytics');
     }
-    
+
     return response.json();
   },
 
@@ -280,12 +318,12 @@ export const analyticsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch progress reports');
     }
-    
+
     return response.json();
   },
 
@@ -298,12 +336,12 @@ export const analyticsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch performance insights');
     }
-    
+
     return response.json();
   },
 
@@ -316,12 +354,12 @@ export const analyticsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch learning paths');
     }
-    
+
     return response.json();
   }
 };
@@ -337,12 +375,12 @@ export const academicAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch academic information');
     }
-    
+
     return response.json();
   },
 
@@ -356,12 +394,12 @@ export const academicAPI = {
       },
       body: JSON.stringify(academicData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update academic information');
     }
-    
+
     return response.json();
   },
 
@@ -374,12 +412,12 @@ export const academicAPI = {
       },
       body: imageData,
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update profile image');
     }
-    
+
     return response.json();
   },
 
@@ -392,12 +430,12 @@ export const academicAPI = {
       },
       body: imageData,
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update cover image');
     }
-    
+
     return response.json();
   }
 };
@@ -413,12 +451,12 @@ export const achievementsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch achievements');
     }
-    
+
     return response.json();
   },
 
@@ -431,12 +469,12 @@ export const achievementsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch achievements');
     }
-    
+
     return response.json();
   }
 };
@@ -452,12 +490,12 @@ export const activityAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch activity');
     }
-    
+
     return response.json();
   },
 
@@ -470,12 +508,12 @@ export const activityAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch activity');
     }
-    
+
     return response.json();
   }
 };
@@ -491,12 +529,12 @@ export const studySessionsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch study sessions');
     }
-    
+
     return response.json();
   },
 
@@ -509,12 +547,12 @@ export const studySessionsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch study sessions');
     }
-    
+
     return response.json();
   },
 
@@ -527,12 +565,12 @@ export const studySessionsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch study statistics');
     }
-    
+
     return response.json();
   },
 
@@ -546,12 +584,12 @@ export const studySessionsAPI = {
       },
       body: JSON.stringify(sessionData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to create study session');
     }
-    
+
     return response.json();
   },
 
@@ -565,12 +603,12 @@ export const studySessionsAPI = {
       },
       body: JSON.stringify(sessionData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update study session');
     }
-    
+
     return response.json();
   },
 
@@ -583,12 +621,12 @@ export const studySessionsAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to delete study session');
     }
-    
+
     return response.json();
   }
 };
@@ -604,12 +642,12 @@ export const userAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch users');
     }
-    
+
     return response.json();
   },
 
@@ -622,12 +660,12 @@ export const userAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch user');
     }
-    
+
     return response.json();
   },
 
@@ -641,15 +679,15 @@ export const userAPI = {
       },
       body: JSON.stringify(planData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update user plan');
     }
-    
+
     return response.json();
   },
-  
+
   // Get pending student verifications (admin only)
   getPendingStudentVerifications: async (token: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/pending-student-verifications`, {
@@ -659,15 +697,15 @@ export const userAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to fetch pending student verifications');
     }
-    
+
     return response.json();
   },
-  
+
   // Approve student verification (admin only)
   approveStudentVerification: async (userId: string, token: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/approve-student-verification/${userId}`, {
@@ -677,15 +715,15 @@ export const userAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to approve student verification');
     }
-    
+
     return response.json();
   },
-  
+
   // Reject student verification (admin only)
   rejectStudentVerification: async (userId: string, token: string) => {
     const response = await fetch(`${API_BASE_URL}/auth/reject-student-verification/${userId}`, {
@@ -695,12 +733,12 @@ export const userAPI = {
         'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to reject student verification');
     }
-    
+
     return response.json();
   }
 };

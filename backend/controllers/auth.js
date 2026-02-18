@@ -140,7 +140,7 @@ exports.login = async (req, res, next) => {
       description: 'User successfully logged in',
       timestamp: Date.now()
     };
-    
+
     await user.addActivity(activity);
 
     sendTokenResponse(user, 200, res);
@@ -158,7 +158,7 @@ exports.login = async (req, res, next) => {
 exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     res.status(200).json({
       success: true,
       data: user
@@ -260,8 +260,9 @@ exports.forgotPassword = async (req, res, next) => {
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    // Create reset URL
-    const resetURL = `${req.protocol}://${req.get('host')}/api/auth/resetpassword/${resetToken}`;
+    // Create reset URL pointing to frontend
+    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetURL = `${frontendURL}/reset-password/${resetToken}`;
 
     // HTML message
     const message = `
@@ -346,7 +347,7 @@ exports.verifyEmail = async (req, res, next) => {
   try {
     // Get token from query parameters
     const { token: verificationtoken } = req.query;
-    
+
     if (!verificationtoken) {
       return res.status(400).json({
         success: false,
@@ -484,7 +485,7 @@ exports.requestStudentVerification = async (req, res, next) => {
 exports.getPendingStudentVerifications = async (req, res, next) => {
   try {
     const users = await User.find({ studentVerificationStatus: 'pending' });
-    
+
     res.status(200).json({
       success: true,
       count: users.length,
@@ -506,7 +507,7 @@ exports.approveStudentVerification = async (req, res, next) => {
     // Set student plan expiration to 6 months from now
     const studentPlanExpiresAt = new Date();
     studentPlanExpiresAt.setMonth(studentPlanExpiresAt.getMonth() + 6);
-    
+
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       {

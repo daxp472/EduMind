@@ -23,7 +23,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password) {
       toast.error('Please fill in all fields');
       return;
@@ -179,15 +179,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Demo Credentials */}
-        <div className="bg-blue-50 rounded-xl p-4 text-center">
-          <p className="text-sm text-blue-700 mb-2">
-            <strong>Demo Account:</strong>
-          </p>
-          <p className="text-xs text-blue-600">
-            Use any email and password to try the platform
-          </p>
-        </div>
       </motion.div>
     </div>
   );

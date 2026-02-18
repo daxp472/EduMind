@@ -1,60 +1,32 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Target, Brain, CircleCheck as CheckCircle, Circle as XCircle, RotateCcw, Play, Settings, Trophy } from 'lucide-react';
+import { Target, Brain, CircleCheck as CheckCircle, Circle as XCircle, RotateCcw, Play, Trophy } from 'lucide-react';
+import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+
+interface Question {
+  id: number;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation?: string;
+}
+
+interface Quiz {
+  title: string;
+  questions: Question[];
+}
 
 const QuizGenerator = () => {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
   const [questionCount, setQuestionCount] = useState(10);
   const [questionType, setQuestionType] = useState('multiple-choice');
-  const [quiz, setQuiz] = useState(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  const mockQuiz = {
-    title: "Artificial Intelligence Fundamentals",
-    questions: [
-      {
-        id: 1,
-        question: "What is the primary goal of artificial intelligence?",
-        options: [
-          "To replace human intelligence",
-          "To simulate human intelligence in machines",
-          "To create robots",
-          "To process data faster"
-        ],
-        correct: 1,
-        explanation: "AI aims to create systems that can perform tasks that typically require human intelligence."
-      },
-      {
-        id: 2,
-        question: "Which of the following is a type of machine learning?",
-        options: [
-          "Supervised learning",
-          "Unsupervised learning", 
-          "Reinforcement learning",
-          "All of the above"
-        ],
-        correct: 3,
-        explanation: "Machine learning includes supervised, unsupervised, and reinforcement learning approaches."
-      },
-      {
-        id: 3,
-        question: "What does 'neural network' refer to in AI?",
-        options: [
-          "A network of computers",
-          "A mathematical model inspired by biological neural networks",
-          "Internet connectivity for AI systems",
-          "A type of programming language"
-        ],
-        correct: 1,
-        explanation: "Neural networks are computational models inspired by the way biological neural networks work."
-      }
-    ]
-  };
 
   const generateQuiz = async () => {
     if (!topic.trim()) {
@@ -63,19 +35,38 @@ const QuizGenerator = () => {
     }
 
     setIsGenerating(true);
-    
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    setQuiz(mockQuiz);
-    setCurrentQuestion(0);
-    setSelectedAnswers({});
-    setShowResults(false);
-    setIsGenerating(false);
-    toast.success('Quiz generated successfully!');
+
+    try {
+      const token = localStorage.getItem('edumind_token') || '';
+      const response = await aiAPI.generateQuiz(
+        { text: topic, numQuestions: questionCount, difficulty },
+        token
+      );
+
+      // Normalize the questions from the AI response
+      const rawQuestions = response.data.questions || [];
+      const normalized: Question[] = rawQuestions.map((q: any, idx: number) => ({
+        id: idx + 1,
+        question: q.question || q.q || '',
+        options: q.options || q.choices || [],
+        correct: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+        explanation: q.explanation || ''
+      }));
+
+      setQuiz({ title: `${topic} Quiz`, questions: normalized });
+      setCurrentQuestion(0);
+      setSelectedAnswers({});
+      setShowResults(false);
+      toast.success('Quiz generated successfully!');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to generate quiz';
+      toast.error(msg);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleAnswerSelect = (questionId, answerIndex) => {
+  const handleAnswerSelect = (questionId: number, answerIndex: number) => {
     setSelectedAnswers(prev => ({
       ...prev,
       [questionId]: answerIndex
@@ -83,6 +74,7 @@ const QuizGenerator = () => {
   };
 
   const calculateScore = () => {
+    if (!quiz) return 0;
     let correct = 0;
     quiz.questions.forEach(q => {
       if (selectedAnswers[q.id] === q.correct) {
@@ -93,6 +85,7 @@ const QuizGenerator = () => {
   };
 
   const finishQuiz = () => {
+    if (!quiz) return;
     setShowResults(true);
     const score = calculateScore();
     toast.success(`Quiz completed! You scored ${score}/${quiz.questions.length}`);
@@ -109,7 +102,7 @@ const QuizGenerator = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -140,7 +133,7 @@ const QuizGenerator = () => {
           >
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Your Quiz</h2>
-              
+
               {/* Topic Input */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -165,11 +158,10 @@ const QuizGenerator = () => {
                     <button
                       key={level}
                       onClick={() => setDifficulty(level)}
-                      className={`p-3 rounded-xl border-2 font-medium capitalize transition-colors ${
-                        difficulty === level
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`p-3 rounded-xl border-2 font-medium capitalize transition-colors ${difficulty === level
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       {level}
                     </button>
@@ -252,7 +244,7 @@ const QuizGenerator = () => {
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentQuestion + 1) / quiz.questions.length) * 100}%` }}
                 ></div>
@@ -264,24 +256,22 @@ const QuizGenerator = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 {quiz.questions[currentQuestion].question}
               </h2>
-              
+
               <div className="space-y-3">
                 {quiz.questions[currentQuestion].options.map((option, index) => (
                   <button
                     key={index}
                     onClick={() => handleAnswerSelect(quiz.questions[currentQuestion].id, index)}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${
-                      selectedAnswers[quiz.questions[currentQuestion].id] === index
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${selectedAnswers[quiz.questions[currentQuestion].id] === index
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        selectedAnswers[quiz.questions[currentQuestion].id] === index
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-300'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedAnswers[quiz.questions[currentQuestion].id] === index
+                        ? 'border-blue-500 bg-blue-500'
+                        : 'border-gray-300'
+                        }`}>
                         {selectedAnswers[quiz.questions[currentQuestion].id] === index && (
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                         )}
@@ -302,7 +292,7 @@ const QuizGenerator = () => {
               >
                 Previous
               </button>
-              
+
               {currentQuestion === quiz.questions.length - 1 ? (
                 <button
                   onClick={finishQuiz}
@@ -350,9 +340,9 @@ const QuizGenerator = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-4xl font-bold text-purple-600 mb-2">
-                    {calculateScore() >= quiz.questions.length * 0.8 ? 'A' : 
-                     calculateScore() >= quiz.questions.length * 0.6 ? 'B' : 
-                     calculateScore() >= quiz.questions.length * 0.4 ? 'C' : 'D'}
+                    {calculateScore() >= quiz.questions.length * 0.8 ? 'A' :
+                      calculateScore() >= quiz.questions.length * 0.6 ? 'B' :
+                        calculateScore() >= quiz.questions.length * 0.4 ? 'C' : 'D'}
                   </div>
                   <div className="text-gray-600">Grade</div>
                 </div>
@@ -381,11 +371,10 @@ const QuizGenerator = () => {
               {quiz.questions.map((question, index) => (
                 <div key={question.id} className="bg-white rounded-2xl shadow-lg p-6">
                   <div className="flex items-start space-x-4">
-                    <div className={`p-2 rounded-full ${
-                      selectedAnswers[question.id] === question.correct 
-                        ? 'bg-green-100' 
-                        : 'bg-red-100'
-                    }`}>
+                    <div className={`p-2 rounded-full ${selectedAnswers[question.id] === question.correct
+                      ? 'bg-green-100'
+                      : 'bg-red-100'
+                      }`}>
                       {selectedAnswers[question.id] === question.correct ? (
                         <CheckCircle className="h-6 w-6 text-green-600" />
                       ) : (
@@ -400,13 +389,12 @@ const QuizGenerator = () => {
                         {question.options.map((option, optionIndex) => (
                           <div
                             key={optionIndex}
-                            className={`p-3 rounded-lg ${
-                              optionIndex === question.correct
-                                ? 'bg-green-100 border border-green-300'
-                                : selectedAnswers[question.id] === optionIndex
+                            className={`p-3 rounded-lg ${optionIndex === question.correct
+                              ? 'bg-green-100 border border-green-300'
+                              : selectedAnswers[question.id] === optionIndex
                                 ? 'bg-red-100 border border-red-300'
                                 : 'bg-gray-50'
-                            }`}
+                              }`}
                           >
                             {option}
                             {optionIndex === question.correct && (

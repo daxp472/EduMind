@@ -1,179 +1,178 @@
 import { motion } from 'framer-motion';
-import { Brain, FileText, Target, ChartBar as BarChart3, MessageSquare, BookOpen, Clock, Lightbulb, Users, Shield, Zap, Sparkles } from 'lucide-react';
+import { Brain, FileText, Target, ChartBar as BarChart3, MessageSquare, Clock, Shield, Sparkles, Cpu, Layers, MousePointer2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Features = () => {
   const mainFeatures = [
     {
       icon: Brain,
       title: 'AI-Powered Personalization',
-      description: 'Advanced machine learning algorithms adapt to your unique learning style and pace',
+      description: 'Advanced machine learning algorithms adapt to your unique learning style and pace.',
       features: [
         'Personalized study recommendations',
         'Adaptive difficulty adjustments',
         'Learning pattern analysis',
         'Custom content generation'
       ],
-      color: 'from-blue-500 to-blue-600'
+      color: 'from-blue-500 to-indigo-600',
+      delay: 0.1
     },
     {
       icon: FileText,
       title: 'Smart Note Summarization',
-      description: 'Transform lengthy documents and notes into digestible, key-point summaries',
+      description: 'Transform lengthy documents and notes into digestible, key-point summaries.',
       features: [
         'PDF and document processing',
         'Key concept extraction',
         'Multi-format support',
         'Instant summary generation'
       ],
-      color: 'from-green-500 to-green-600'
+      color: 'from-emerald-500 to-teal-600',
+      delay: 0.2
     },
     {
       icon: Target,
       title: 'Adaptive Quiz Engine',
-      description: 'Dynamic quiz generation that evolves based on your performance and knowledge gaps',
+      description: 'Dynamic quiz generation that evolves based on your performance and knowledge gaps.',
       features: [
         'Auto-generated questions',
         'Difficulty scaling',
         'Performance tracking',
         'Weak area identification'
       ],
-      color: 'from-purple-500 to-purple-600'
+      color: 'from-purple-500 to-pink-600',
+      delay: 0.3
     },
     {
       icon: BarChart3,
       title: 'Advanced Analytics',
-      description: 'Comprehensive insights into your learning progress with detailed performance metrics',
+      description: 'Comprehensive insights into your learning progress with detailed performance metrics.',
       features: [
         'Progress visualization',
         'Time tracking',
         'Performance trends',
         'Goal achievement metrics'
       ],
-      color: 'from-orange-500 to-orange-600'
+      color: 'from-orange-500 to-amber-600',
+      delay: 0.4
     }
   ];
 
   const additionalFeatures = [
     {
       icon: MessageSquare,
-      title: '24/7 AI Tutor',
-      description: 'Always-available intelligent tutoring system'
+      title: 'Contextual AI Chat',
+      description: 'Ask deep questions about your study materials and get instant, cited answers.',
+      color: 'bg-blue-500/10 text-blue-400'
     },
     {
       icon: Clock,
-      title: 'Smart Scheduling',
-      description: 'AI-optimized study schedules for maximum retention'
+      title: 'Dynamic Scheduling',
+      description: 'Automated study calendars that adjust based on your real-world progress.',
+      color: 'bg-purple-500/10 text-purple-400'
     },
     {
-      icon: Lightbulb,
-      title: 'Concept Mapping',
-      description: 'Visual knowledge graphs and concept relationships'
+      icon: Cpu,
+      title: 'Cross-Tool Intelligence',
+      description: 'Your summaries automatically generate flashcards and quizzes.',
+      color: 'bg-emerald-500/10 text-emerald-400'
     },
     {
-      icon: Users,
-      title: 'Collaborative Learning',
-      description: 'Study groups and peer interaction features'
+      icon: Layers,
+      title: 'Knowledge Vault',
+      description: 'A centralized, searchable database of everything you have ever learned.',
+      color: 'bg-amber-500/10 text-amber-400'
     },
     {
       icon: Shield,
-      title: 'Privacy First',
-      description: 'Enterprise-grade security for your data'
+      title: 'Privacy-Locked',
+      description: 'Your notes and data are encrypted and never used to train public models.',
+      color: 'bg-rose-500/10 text-rose-400'
     },
     {
-      icon: Zap,
-      title: 'Lightning Fast',
-      description: 'Optimized performance for instant results'
-    }
-  ];
-
-  const benefits = [
-    {
-      stat: '3x Faster',
-      label: 'Learning Speed',
-      description: 'Students learn concepts 3 times faster with AI assistance'
-    },
-    {
-      stat: '95%',
-      label: 'Retention Rate',
-      description: 'Higher information retention with personalized learning'
-    },
-    {
-      stat: '50%',
-      label: 'Time Saved',
-      description: 'Reduce study time while improving comprehension'
-    },
-    {
-      stat: '24/7',
-      label: 'Availability',
-      description: 'Round-the-clock AI support whenever you need help'
+      icon: MousePointer2,
+      title: 'One-Click Workflow',
+      description: 'Seamless transitions between reading, summarizing, and testing.',
+      color: 'bg-indigo-500/10 text-indigo-400'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
       {/* Hero Section */}
-      <section className="pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Cutting-Edge AI Technology
-            </span>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Features That Transform
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                How You Learn
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8">
+              <Sparkles className="h-4 w-4 text-indigo-400" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-indigo-300">Infinite Possibilities</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">
+              Powerful Tools for the <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
+                Limitless Mind
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover the comprehensive suite of AI-powered tools designed to revolutionize 
-              your educational experience and accelerate your learning journey.
+            <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+              We've engineered a seamless ecosystem of AI tools that communicate with each other
+              to streamline your path to mastery.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Main Features */}
-      <section className="py-20 bg-white">
+      {/* Main Features Showcase */}
+      <section className="py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-20">
+          <div className="space-y-40">
             {mainFeatures.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
-                  index % 2 === 1 ? 'lg:flex-row-reverse' : ''
-                }`}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className={`flex flex-col lg:flex-row items-center gap-16 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''
+                  }`}
               >
-                <div className={index % 2 === 1 ? 'lg:order-2' : ''}>
-                  <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6`}>
+                <div className="flex-1 space-y-8">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg shadow-indigo-500/10`}>
                     <feature.icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                    {feature.title}
-                  </h3>
-                  <p className="text-lg text-gray-600 mb-6">
+                  <h2 className="text-4xl font-bold tracking-tight">{feature.title}</h2>
+                  <p className="text-lg text-zinc-400 leading-relaxed">
                     {feature.description}
                   </p>
-                  <ul className="space-y-3">
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {feature.features.map((item, itemIndex) => (
-                      <li key={itemIndex} className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-gray-700">{item}</span>
+                      <li key={itemIndex} className="flex items-center space-x-3 text-zinc-300">
+                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                        <span className="text-sm font-medium">{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className={`relative ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
-                  <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 shadow-lg border border-gray-200">
-                    <div className="w-full h-64 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center">
-                      <feature.icon className="h-20 w-20 text-blue-500" />
+                <div className="flex-1 w-full flex justify-center lg:justify-end">
+                  <div className="relative group w-full max-w-md">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-20 blur-3xl rounded-full group-hover:opacity-30 transition-opacity`} />
+                    <div className="relative aspect-square rounded-[3rem] bg-zinc-900 border border-white/5 p-8 flex items-center justify-center transform group-hover:-translate-y-2 transition-transform duration-500 shadow-2xl overflow-hidden backdrop-blur-sm">
+                      {/* Visual Representation Placeholder */}
+                      <feature.icon className="h-32 w-32 text-white/10 absolute -bottom-4 -right-4 rotate-12" />
+                      <div className="space-y-4 w-full">
+                        <div className="h-2 w-1/3 bg-white/10 rounded-full" />
+                        <div className="h-2 w-full bg-white/5 rounded-full" />
+                        <div className="h-2 w-2/3 bg-white/5 rounded-full" />
+                        <div className="pt-4 grid grid-cols-3 gap-2">
+                          <div className="h-8 rounded-lg bg-indigo-500/20" />
+                          <div className="h-8 rounded-lg bg-purple-500/20" />
+                          <div className="h-8 rounded-lg bg-emerald-500/20" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -183,22 +182,13 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Additional Features Grid */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Secondary Features Grid */}
+      <section className="py-32 bg-zinc-950/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need to Excel
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Comprehensive tools and features designed to support every aspect of your learning journey
-            </p>
-          </motion.div>
+          <div className="text-center mb-20">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">Designed for Excellence</h2>
+            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">Every detail refined to ensure your cognitive resources are focused on learning, not navigating.</p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {additionalFeatures.map((feature, index) => (
@@ -206,16 +196,15 @@ const Features = () => {
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="group p-8 rounded-[2rem] bg-zinc-900/40 border border-white/5 hover:bg-zinc-900 hover:border-white/10 transition-all cursor-default"
               >
-                <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mb-6">
-                  <feature.icon className="h-7 w-7 text-white" />
+                <div className={`w-12 h-12 rounded-xl ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <feature.icon size={22} />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>
@@ -224,66 +213,48 @@ const Features = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-900 to-purple-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Proven Results That Matter
-            </h2>
-            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
-              Real impact on learning outcomes backed by data and student success stories
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center p-6 bg-white/10 backdrop-blur-md rounded-2xl"
-              >
-                <div className="text-4xl font-bold mb-2">{benefit.stat}</div>
-                <div className="text-blue-200 font-semibold mb-2">{benefit.label}</div>
-                <p className="text-blue-100 text-sm">{benefit.description}</p>
-              </motion.div>
-            ))}
+      {/* Final CTA */}
+      <section className="py-40 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 blur-[150px] rounded-full" />
+        <div className="max-w-4xl mx-auto px-4 text-center relative">
+          <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">Empower your <br />learning journey.</h2>
+          <p className="text-zinc-400 text-xl mb-12">
+            Experience the synergy of world-class AI tools in one unified workspace.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/signup"
+              className="px-10 py-5 bg-white text-black rounded-2xl font-bold text-lg hover:bg-zinc-200 transition-all hover:scale-105"
+            >
+              Start Free Trial
+            </Link>
+            <Link
+              to="/pricing"
+              className="px-10 py-5 bg-zinc-900/80 border border-zinc-800 rounded-2xl font-bold text-lg hover:bg-zinc-800 transition-all text-white"
+            >
+              Explore Plans
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Ready to Experience the Future of Learning?
-            </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of students who are already transforming their education with EduMind's AI-powered platform.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg">
-                Start Free Trial
-              </button>
-              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold text-lg hover:border-blue-600 hover:text-blue-600 transition-all">
-                Schedule Demo
-              </button>
+      <footer className="py-12 border-t border-zinc-900 bg-[#050505] text-zinc-500">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
+            <div className="flex items-center space-x-2 text-white">
+              <Brain className="h-6 w-6 text-indigo-500" />
+              <span className="text-xl font-black tracking-tighter">EduMind</span>
             </div>
-          </motion.div>
+            <div className="flex space-x-8 text-sm font-medium">
+              <Link to="/" className="hover:text-white transition-colors">Home</Link>
+              <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+              <Link to="/about" className="hover:text-white transition-colors">About</Link>
+              <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+            </div>
+          </div>
+          <p className="text-xs opacity-50">© 2024 EduMind AI. Built for the modern learner.</p>
         </div>
-      </section>
+      </footer>
     </div>
   );
 };

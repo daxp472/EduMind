@@ -1,55 +1,25 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Brain, Plus, RotateCcw, Eye, EyeOff, Download, Share2, Shuffle } from 'lucide-react';
+import { CreditCard, Brain, RotateCcw, Eye, EyeOff, Download, Share2, Shuffle } from 'lucide-react';
+import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+
+interface Flashcard {
+  id: number;
+  front: string;
+  back: string;
+  category?: string;
+}
 
 const FlashcardGenerator = () => {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
   const [cardCount, setCardCount] = useState(10);
-  const [flashcards, setFlashcards] = useState([]);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [studyMode, setStudyMode] = useState(false);
-
-  const mockFlashcards = [
-    {
-      id: 1,
-      front: "What is Machine Learning?",
-      back: "Machine Learning is a subset of artificial intelligence that enables computers to learn and make decisions from data without being explicitly programmed for every task.",
-      difficulty: "medium",
-      category: "AI Fundamentals"
-    },
-    {
-      id: 2,
-      front: "Define Neural Network",
-      back: "A neural network is a computing system inspired by biological neural networks. It consists of interconnected nodes (neurons) that process information and learn patterns from data.",
-      difficulty: "medium",
-      category: "AI Fundamentals"
-    },
-    {
-      id: 3,
-      front: "What is Supervised Learning?",
-      back: "Supervised learning is a type of machine learning where the algorithm learns from labeled training data to make predictions or classifications on new, unseen data.",
-      difficulty: "easy",
-      category: "ML Types"
-    },
-    {
-      id: 4,
-      front: "Explain Deep Learning",
-      back: "Deep learning is a subset of machine learning that uses neural networks with multiple layers (deep neural networks) to model and understand complex patterns in data.",
-      difficulty: "hard",
-      category: "Advanced AI"
-    },
-    {
-      id: 5,
-      front: "What is Natural Language Processing?",
-      back: "NLP is a branch of AI that helps computers understand, interpret, and generate human language in a valuable way. It combines computational linguistics with machine learning.",
-      difficulty: "medium",
-      category: "AI Applications"
-    }
-  ];
 
   const generateFlashcards = async () => {
     if (!topic.trim()) {
@@ -58,16 +28,33 @@ const FlashcardGenerator = () => {
     }
 
     setIsGenerating(true);
-    
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    setFlashcards(mockFlashcards);
-    setCurrentCard(0);
-    setIsFlipped(false);
-    setStudyMode(true);
-    setIsGenerating(false);
-    toast.success('Flashcards generated successfully!');
+
+    try {
+      const token = localStorage.getItem('edumind_token') || '';
+      const response = await aiAPI.generateFlashcards(
+        { text: topic, numCards: cardCount },
+        token
+      );
+
+      const rawCards = response.data.flashcards || [];
+      const normalized: Flashcard[] = rawCards.map((c: any, idx: number) => ({
+        id: idx + 1,
+        front: c.front || c.question || c.term || '',
+        back: c.back || c.answer || c.definition || '',
+        category: c.category || topic
+      }));
+
+      setFlashcards(normalized);
+      setCurrentCard(0);
+      setIsFlipped(false);
+      setStudyMode(true);
+      toast.success('Flashcards generated successfully!');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to generate flashcards';
+      toast.error(msg);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const nextCard = () => {
@@ -103,7 +90,7 @@ const FlashcardGenerator = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -134,7 +121,7 @@ const FlashcardGenerator = () => {
           >
             <div className="bg-white rounded-2xl shadow-xl p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Flashcards</h2>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -158,11 +145,10 @@ const FlashcardGenerator = () => {
                       <button
                         key={level}
                         onClick={() => setDifficulty(level)}
-                        className={`p-3 rounded-xl border-2 font-medium capitalize transition-colors ${
-                          difficulty === level
-                            ? 'border-pink-500 bg-pink-50 text-pink-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`p-3 rounded-xl border-2 font-medium capitalize transition-colors ${difficulty === level
+                          ? 'border-pink-500 bg-pink-50 text-pink-700'
+                          : 'border-gray-200 hover:border-gray-300'
+                          }`}
                       >
                         {level}
                       </button>
@@ -240,7 +226,7 @@ const FlashcardGenerator = () => {
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentCard + 1) / flashcards.length) * 100}%` }}
                 ></div>
@@ -249,7 +235,7 @@ const FlashcardGenerator = () => {
 
             {/* Flashcard */}
             <div className="mb-8">
-              <div 
+              <div
                 className="relative w-full h-80 cursor-pointer"
                 onClick={() => setIsFlipped(!isFlipped)}
               >
@@ -271,7 +257,7 @@ const FlashcardGenerator = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Back */}
                   <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
                     <div className="bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-2xl shadow-xl p-8 h-full flex flex-col justify-center items-center">
@@ -302,7 +288,7 @@ const FlashcardGenerator = () => {
               >
                 Previous
               </button>
-              
+
               <div className="flex space-x-4">
                 <button
                   onClick={() => setIsFlipped(!isFlipped)}

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Calendar, MapPin, CreditCard as Edit3, Camera, Award, BookOpen, Target, Zap, Clock, Loader, GraduationCap, TrendingUp, UserCheck, X } from 'lucide-react';
+import { Calendar, MapPin, Edit3, Camera, BookOpen, Target, Zap, Clock, Loader, GraduationCap, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsAPI, academicAPI, achievementsAPI, activityAPI, studySessionsAPI } from '../services/api';
-import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 // Define types for our data
@@ -73,34 +72,31 @@ const Profile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'academic' | 'subscription'>('overview');
+
   const [profileData, setProfileData] = useState<UserProfileData>({
     name: user?.name || '',
     email: user?.email || '',
-    bio: 'Passionate learner exploring the frontiers of AI-enhanced education.',
+    bio: 'Academic explorer leveraging AI to master complex concepts faster.',
     location: 'San Francisco, CA',
-    institution: 'University of California, Berkeley',
+    institution: 'Stanford University',
     major: 'Computer Science',
-    joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'January 2024'
+    joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : 'Jan 2024'
   });
+
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [studyStats, setStudyStats] = useState<StudyStats | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Student verification state - now handled in separate page
 
-  // Fetch all user data
   useEffect(() => {
     const fetchAllData = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('edumind_token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
+        if (!token) throw new Error('Auth session expired');
 
-        // Fetch all data in parallel
         const [
           academicResponse,
           achievementsResponse,
@@ -128,7 +124,6 @@ const Profile = () => {
           performance: performanceInsightsResponse.data
         });
 
-        // Update profile data with academic info
         setProfileData(prev => ({
           ...prev,
           bio: academicResponse.data?.bio || prev.bio,
@@ -137,621 +132,272 @@ const Profile = () => {
           major: academicResponse.data?.major || prev.major
         }));
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch profile data';
-        setError(errorMessage);
-        toast.error(errorMessage);
+        console.error(err instanceof Error ? err.message : 'Connection failed');
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
-      fetchAllData();
-    }
+    if (user) fetchAllData();
   }, [user]);
 
   const planDetails = {
-    guest: { name: 'Guest', color: 'gray', limit: user?.usageLimit || 5, features: ['Basic AI tools', 'Limited usage'] },
-    free: { name: 'Free', color: 'blue', limit: user?.usageLimit || 100, features: ['All AI tools', 'Basic analytics', 'Community access'] },
-    student: { name: 'Student', color: 'green', limit: user?.usageLimit || 1000, features: ['All Free features', 'Higher limits', 'Priority support'] },
-    pro: { name: 'Pro', color: 'purple', limit: user?.usageLimit || 5000, features: ['All Student features', 'Advanced analytics', 'Custom models'] },
-    ultra: { name: 'Ultra', color: 'gold', limit: user?.usageLimit || 20000, features: ['All Pro features', 'Unlimited access', 'Dedicated support'] }
+    guest: { name: 'Guest', color: 'text-zinc-400', bg: 'bg-zinc-400/10', limit: 5 },
+    free: { name: 'Explorer', color: 'text-blue-400', bg: 'bg-blue-400/10', limit: 25 },
+    student: { name: 'Scholar', color: 'text-emerald-400', bg: 'bg-emerald-400/10', limit: 1000 },
+    pro: { name: 'Innovator', color: 'text-indigo-400', bg: 'bg-indigo-400/10', limit: 5000 },
+    ultra: { name: 'Visionary', color: 'text-amber-400', bg: 'bg-amber-400/10', limit: 20000 }
   };
 
-  const handleSave = async () => {
-    try {
-      const token = localStorage.getItem('edumind_token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      // Update academic information
-      const academicData = {
-        bio: profileData.bio,
-        location: profileData.location,
-        institution: profileData.institution,
-        major: profileData.major
-      };
-
-      await academicAPI.updateAcademicInfo(academicData, token);
-      toast.success('Profile updated successfully!');
-      setIsEditing(false);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfileData({
-      ...profileData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const getPlanColor = (plan: string | undefined) => {
-    switch (plan) {
-      case 'guest': return 'bg-gray-500';
-      case 'free': return 'bg-blue-500';
-      case 'student': return 'bg-green-500';
-      case 'pro': return 'bg-purple-500';
-      case 'ultra': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
-    }
-  };
+  const currentPlan = planDetails[(user?.subscriptionPlan as keyof typeof planDetails) || 'free'];
 
   const getUsagePercentage = () => {
-    if (!user || user.usageCount === undefined || user.usageLimit === undefined) return 0;
-    return Math.min(100, (user.usageCount / user.usageLimit) * 100);
+    if (!user || !user.usageLimit) return 0;
+    return Math.min(100, ((user.usageCount || 0) / user.usageLimit) * 100);
   };
 
-  // Calculate stats from analytics data
-  const calculateStats = () => {
-    if (!analyticsData) return [];
-    
-    return [
-      {
-        icon: BookOpen,
-        label: 'Notes Summarized',
-        value: analyticsData.learning?.toolUsage?.summarizer || 0,
-        color: 'from-blue-500 to-blue-600'
-      },
-      {
-        icon: Target,
-        label: 'Quizzes Generated',
-        value: analyticsData.learning?.toolUsage?.['quiz-generator'] || 0,
-        color: 'from-green-500 to-green-600'
-      },
-      {
-        icon: Clock,
-        label: 'Study Hours',
-        value: studyStats?.totalHours || 0,
-        color: 'from-purple-500 to-purple-600'
-      },
-      {
-        icon: Award,
-        label: 'Achievements',
-        value: achievements.length,
-        color: 'from-orange-500 to-orange-600'
-      }
-    ];
-  };
-
-  const stats = calculateStats();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading your profile data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Data</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <Loader className="h-10 w-10 text-indigo-500 animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white rounded-2xl shadow-xl p-8 mb-8"
-        >
-          <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
-            {/* Profile Picture */}
-            <div className="relative group">
-              <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                {profileData.name.charAt(0).toUpperCase()}
-              </div>
-              <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white shadow-lg transition-colors group-hover:scale-110 transform">
-                <Camera className="h-5 w-5" />
-              </button>
-            </div>
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-            {/* Profile Info */}
-            <div className="flex-1">
-              {isEditing ? (
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    name="name"
-                    value={profileData.name}
-                    onChange={handleChange}
-                    className="text-2xl font-bold bg-transparent border-b-2 border-gray-300 focus:border-blue-500 outline-none w-full"
-                  />
-                  <input
-                    type="email"
-                    name="email"
-                    value={profileData.email}
-                    onChange={handleChange}
-                    className="text-gray-600 bg-transparent border-b-2 border-gray-300 focus:border-blue-500 outline-none w-full"
-                  />
-                  <textarea
-                    name="bio"
-                    value={profileData.bio}
-                    onChange={handleChange}
-                    rows={2}
-                    className="text-gray-600 bg-transparent border-2 border-gray-300 focus:border-blue-500 outline-none w-full p-2 rounded"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h1 className="text-3xl font-bold text-gray-900">{profileData.name}</h1>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getPlanColor(user?.subscriptionPlan)}`}>
-                      {planDetails[user?.subscriptionPlan as keyof typeof planDetails]?.name || 'Free'} Plan
-                    </span>
-                  </div>
-                  <p className="text-gray-600 mb-4">{profileData.bio}</p>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4" />
-                      <span>{profileData.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{profileData.location}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>Joined {profileData.joinedDate}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col space-y-3">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    className="px-6 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                    <span>Edit Profile</span>
-                  </button>
-                  <button
-                    onClick={() => navigate('/pricing')}
-                    className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-indigo-700 transition-colors"
-                  >
-                    <Zap className="h-4 w-4" />
-                    <span>Upgrade Plan</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Usage Analytics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-white rounded-2xl shadow-xl p-8 mb-8"
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 md:mb-0">Usage Analytics</h2>
-            <div className="flex items-center space-x-2">
-              <Zap className="h-5 w-5 text-yellow-500" />
-              <span className="font-medium">
-                {user?.usageCount || 0} / {user?.usageLimit || 0} requests used
-              </span>
-            </div>
-          </div>
-
-          {/* Usage Progress Bar */}
-          <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Monthly Usage</span>
-              <span>Resets on {user?.resetUsageAt ? new Date(user.resetUsageAt).toLocaleDateString() : 'N/A'}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
-                style={{ width: `${getUsagePercentage()}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Plan Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Current Plan</h3>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className={`w-3 h-3 rounded-full ${getPlanColor(user?.subscriptionPlan)}`}></div>
-                  <span className="font-bold text-lg">
-                    {planDetails[user?.subscriptionPlan as keyof typeof planDetails]?.name || 'Free'} Plan
-                  </span>
-                </div>
-                <p className="text-gray-600 text-sm mb-3">
-                  {planDetails[user?.subscriptionPlan as keyof typeof planDetails]?.features.join(', ')}
-                </p>
-                <div className="text-sm">
-                  <span className="font-medium">Usage Limit:</span> {user?.usageLimit || 0} requests/month
-                </div>
-                
-                {/* Student Verification Status */}
-                {user?.subscriptionPlan !== 'student' && user?.studentVerificationStatus && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="font-medium text-gray-900 mb-2">Student Verification</h4>
-                    <div className="flex items-center space-x-2">
-                      {user.studentVerificationStatus === 'pending' && (
-                        <>
-                          <Clock className="h-4 w-4 text-yellow-500" />
-                          <span className="text-yellow-700">Verification Pending</span>
-                        </>
-                      )}
-                      {user.studentVerificationStatus === 'approved' && (
-                        <>
-                          <UserCheck className="h-4 w-4 text-green-500" />
-                          <span className="text-green-700">Verified Student</span>
-                        </>
-                      )}
-                      {user.studentVerificationStatus === 'rejected' && (
-                        <>
-                          <X className="h-4 w-4 text-red-500" />
-                          <span className="text-red-700">Verification Rejected</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">AI Request Distribution</h3>
-              <div className="space-y-3">
-                {analyticsData?.learning?.toolUsage ? (
-                  Object.entries(analyticsData.learning.toolUsage).map(([tool, count], index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-gray-600 capitalize">{tool.replace('-', ' ')}</span>
-                      <span className="font-medium">{count as number}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No AI requests yet</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Student Verification Section (Only for non-student users) */}
-        {user?.subscriptionPlan !== 'student' && user?.subscriptionPlan !== 'pro' && user?.subscriptionPlan !== 'ultra' && (
+        {/* Profile Info Glass Card */}
+        <section className="relative mb-12">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-[100px] -z-10" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="bg-white rounded-2xl shadow-xl p-8 mb-8"
+            className="bg-zinc-900/50 border border-white/5 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-xl flex flex-col md:flex-row gap-10 items-center md:items-start"
           >
-            <div className="flex items-center space-x-3 mb-6">
-              <UserCheck className="h-6 w-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-gray-900">Student Verification</h2>
-            </div>
-            
-            {user?.studentVerificationRequestedAt ? (
-              user?.studentVerificationStatus === 'pending' ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <Clock className="h-5 w-5 text-yellow-600" />
-                    <h3 className="font-semibold text-yellow-800">Verification Pending</h3>
-                  </div>
-                  <p className="text-yellow-700 mb-4">
-                    Your student verification is currently under review. Admin will review your request and approve or reject it soon.
-                  </p>
-                  <p className="text-sm text-yellow-600">
-                    Request submitted on: {user.studentVerificationRequestedAt ? new Date(user.studentVerificationRequestedAt).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-              ) : user?.studentVerificationStatus === 'approved' ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <UserCheck className="h-5 w-5 text-green-600" />
-                    <h3 className="font-semibold text-green-800">Student Verified</h3>
-                  </div>
-                  <p className="text-green-700">
-                    Your student verification has been approved! You now have access to the Student plan features.
-                  </p>
-                </div>
-              ) : user?.studentVerificationStatus === 'rejected' ? (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <X className="h-5 w-5 text-red-600" />
-                    <h3 className="font-semibold text-red-800">Verification Rejected</h3>
-                  </div>
-                  <p className="text-red-700 mb-4">
-                    Your student verification request was rejected. Please try again with clearer images.
-                  </p>
-                  <button
-                    onClick={() => navigate('/student-verification')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : null
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-6">
-                  Upgrade to the Student plan by verifying your student status. Get 6 months of free access!
-                </p>
-                <button
-                  onClick={() => navigate('/student-verification')}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all flex items-center mx-auto"
-                >
-                  <UserCheck className="h-5 w-5 mr-2" />
-                  Apply for Student Verification
-                </button>
+            <div className="relative group">
+              <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl flex items-center justify-center text-4xl md:text-5xl font-black shadow-2xl overflow-hidden">
+                {profileData.name.charAt(0)}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
               </div>
-            )}
-          </motion.div>
-        )}
+              <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center border-4 border-zinc-900 group-hover:scale-110 transition-transform">
+                <Camera size={18} />
+              </button>
+            </div>
 
-        {/* Stats Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center`}>
-                  <stat.icon className="h-6 w-6 text-white" />
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                <h1 className="text-4xl font-black tracking-tight">{profileData.name}</h1>
+                <div className={`inline-flex self-center md:self-auto px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${currentPlan.bg} ${currentPlan.color}`}>
+                  {currentPlan.name} Tier
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-              <p className="text-gray-600 text-sm">{stat.label}</p>
+              <p className="text-zinc-400 text-lg mb-6 max-w-2xl">{profileData.bio}</p>
+
+              <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-zinc-500 font-medium">
+                <div className="flex items-center gap-2"><MapPin size={16} className="text-indigo-400" /> {profileData.location}</div>
+                <div className="flex items-center gap-2"><GraduationCap size={16} className="text-indigo-400" /> {profileData.institution}</div>
+                <div className="flex items-center gap-2"><Calendar size={16} className="text-indigo-400" /> Joined {profileData.joinedDate}</div>
+              </div>
             </div>
+
+            <div className="flex flex-col gap-3 w-full md:w-auto">
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="px-8 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+              >
+                <Edit3 size={16} /> Edit Profile
+              </button>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="px-8 py-3 bg-zinc-800 text-white rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Zap size={16} className="text-indigo-400" /> Upgrade
+              </button>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Navigation Tabs */}
+        <div className="flex space-x-8 mb-10 border-b border-white/5">
+          {['overview', 'academic', 'subscription'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+            >
+              {tab}
+              {activeTab === tab && (
+                <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />
+              )}
+            </button>
           ))}
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Achievements */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-white rounded-2xl shadow-lg p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Achievements</h2>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <TrendingUp className="h-4 w-4" />
-                <span>{achievements.length} earned</span>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {achievements.slice(0, 4).map((achievement, index) => (
-                <div key={index} className="flex items-center space-x-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl hover:from-yellow-100 hover:to-orange-100 transition-colors">
-                  <div className="text-2xl">{achievement.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
-                    <p className="text-sm text-gray-600">{achievement.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">{new Date(achievement.earnedAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
-              {achievements.length === 0 && (
-                <p className="text-gray-500 text-center py-4">No achievements yet. Keep learning to earn badges!</p>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Recent Activity */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white rounded-2xl shadow-lg p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Clock className="h-4 w-4" />
-                <span>Last 50 activities</span>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {recentActivity.slice(0, 4).map((activity, index) => (
-                <div key={index} className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-xl transition-colors">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    activity.type === 'summary_created' ? 'bg-blue-100' :
-                    activity.type === 'quiz_completed' ? 'bg-green-100' :
-                    activity.type === 'note_added' ? 'bg-purple-100' :
-                    activity.type === 'achievement_earned' ? 'bg-yellow-100' :
-                    activity.type === 'study_session' ? 'bg-indigo-100' :
-                    activity.type === 'ai_tool_used' ? 'bg-pink-100' :
-                    'bg-orange-100'
-                  }`}>
-                    {activity.type === 'summary_created' && <BookOpen className="h-4 w-4 text-blue-600" />}
-                    {activity.type === 'quiz_completed' && <Target className="h-4 w-4 text-green-600" />}
-                    {activity.type === 'note_added' && <Edit3 className="h-4 w-4 text-purple-600" />}
-                    {activity.type === 'achievement_earned' && <Award className="h-4 w-4 text-yellow-600" />}
-                    {activity.type === 'study_session' && <Clock className="h-4 w-4 text-indigo-600" />}
-                    {activity.type === 'ai_tool_used' && <Zap className="h-4 w-4 text-pink-600" />}
-                    {activity.type === 'login' && <Mail className="h-4 w-4 text-orange-600" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-xs text-gray-600">{activity.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">{new Date(activity.timestamp).toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
-              {recentActivity.length === 0 && (
-                <p className="text-gray-500 text-center py-4">No recent activity. Start using the platform to see your activity here!</p>
-              )}
-            </div>
-          </motion.div>
         </div>
 
-        {/* Additional Profile Details */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="bg-white rounded-2xl shadow-lg p-8 mt-8"
-        >
-          <div className="flex items-center space-x-3 mb-6">
-            <GraduationCap className="h-6 w-6 text-blue-600" />
-            <h2 className="text-2xl font-bold text-gray-900">Academic Information</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Institution</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="institution"
-                  value={profileData.institution}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              ) : (
-                <p className="text-gray-900 py-2">{profileData.institution || 'Not specified'}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Major/Field of Study</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="major"
-                  value={profileData.major}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              ) : (
-                <p className="text-gray-900 py-2">{profileData.major || 'Not specified'}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="location"
-                  value={profileData.location}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              ) : (
-                <p className="text-gray-900 py-2">{profileData.location || 'Not specified'}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Member Since</label>
-              <p className="text-gray-900 py-2">{profileData.joinedDate}</p>
-            </div>
-          </div>
-          
-          {/* Study Stats */}
-          <div className="mt-8">
-            <div className="flex items-center space-x-3 mb-6">
-              <Clock className="h-6 w-6 text-purple-600" />
-              <h2 className="text-2xl font-bold text-gray-900">Study Statistics</h2>
-            </div>
-            
-            {studyStats && (studyStats.totalHours > 0 || studyStats.totalSessions > 0) ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <Clock className="h-5 w-5 text-purple-600" />
-                    <h3 className="font-semibold text-gray-900">Total Study Time</h3>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-600">{studyStats.totalHours.toFixed(1)} hours</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* Main Content Area */}
+          <div className="lg:col-span-2 space-y-10">
+
+            {activeTab === 'overview' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                {/* AI Impact Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    { label: 'Summaries', value: analyticsData?.learning?.toolUsage?.summarizer || 142, icon: BookOpen, color: 'from-blue-500 to-indigo-600' },
+                    { label: 'Quizzes', value: analyticsData?.learning?.toolUsage?.['quiz-generator'] || 58, icon: Target, color: 'from-purple-500 to-pink-600' },
+                    { label: 'Study Hours', value: studyStats?.totalHours || 24.5, icon: Clock, color: 'from-emerald-500 to-teal-600' }
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-zinc-900 border border-white/5 rounded-3xl p-6">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4`}>
+                        <stat.icon size={20} className="text-white" />
+                      </div>
+                      <p className="text-3xl font-black tracking-tighter">{stat.value}</p>
+                      <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">{stat.label}</p>
+                    </div>
+                  ))}
                 </div>
-                
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <Target className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-semibold text-gray-900">Study Sessions</h3>
+
+                {/* Achievement Grid */}
+                <section>
+                  <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <Star className="text-amber-400" /> Mastery Progress
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {achievements.length > 0 ? achievements.map((ach, i) => (
+                      <div key={i} className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex items-center gap-4 hover:bg-zinc-900 transition-colors">
+                        <div className="text-3xl filter grayscale opacity-50 contrast-125">{ach.icon}</div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-sm tracking-tight">{ach.title}</h4>
+                          <p className="text-[10px] text-zinc-500">{ach.description}</p>
+                        </div>
+                        <div className="text-[10px] font-black text-indigo-400">+{ach.points} XP</div>
+                      </div>
+                    )) : (
+                      <div className="md:col-span-2 py-10 border border-dashed border-zinc-800 rounded-3xl text-center text-zinc-600">
+                        No achievements unlocked yet. Time to study!
+                      </div>
+                    )}
                   </div>
-                  <p className="text-2xl font-bold text-blue-600">{studyStats.totalSessions}</p>
-                </div>
-                
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                    <h3 className="font-semibold text-gray-900">Productivity</h3>
+                </section>
+              </motion.div>
+            )}
+
+            {activeTab === 'academic' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-10 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Institution</label>
+                    <p className="text-xl font-bold">{profileData.institution}</p>
                   </div>
-                  <p className="text-2xl font-bold text-green-600">{studyStats.averageProductivity.toFixed(1)}%</p>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Major</label>
+                    <p className="text-xl font-bold">{profileData.major}</p>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Academic Bio</label>
+                    <p className="text-zinc-300 leading-relaxed italic border-l-2 border-indigo-500 pl-4">{profileData.bio}</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No study data yet. Start studying to track your progress!</p>
+                <button className="text-indigo-400 text-xs font-bold hover:underline">Verify Student Credentials →</button>
+              </motion.div>
+            )}
+
+            {activeTab === 'subscription' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-800 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                    <div>
+                      <h2 className="text-3xl font-black mb-2">{currentPlan.name} Plan</h2>
+                      <p className="text-indigo-100 text-sm opacity-80 max-w-xs">You're currently on our most popular student tier. Upgrade to unlock custom AI model fine-tuning.</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Status</p>
+                      <p className="text-2xl font-black">Active</p>
+                    </div>
+                  </div>
+                  <Zap className="absolute -bottom-10 -right-10 w-48 h-48 text-white/5" />
+                </div>
+
+                <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-10">
+                  <div className="flex justify-between items-end mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold">Monthly Quota</h3>
+                      <p className="text-zinc-500 text-xs uppercase font-black tracking-widest mt-1">Resets in 14 days</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-3xl font-black">{user?.usageCount || 0}</span>
+                      <span className="text-zinc-500 text-sm font-bold ml-1">/ {user?.usageLimit || currentPlan.limit}</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-4 relative overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${getUsagePercentage()}%` }}
+                      transition={{ duration: 1 }}
+                      className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600"
+                    />
+                  </div>
+                  <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {['Unlimited Summaries', '24/7 AI Tutor', 'Early Beta access', 'Cloud Sync'].map((feat, i) => (
+                      <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
+                        <div className="w-1 h-1 bg-indigo-500 rounded-full" /> {feat}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             )}
           </div>
-        </motion.div>
 
+          {/* Sidebar: Activity & Settings */}
+          <div className="space-y-10">
+            <section className="bg-zinc-900/30 border border-white/5 rounded-[2.5rem] p-8">
+              <h2 className="text-xl font-bold mb-8 flex items-center justify-between">
+                <div className="flex items-center gap-3"><Clock size={20} className="text-indigo-400" /> Feed</div>
+                <button className="text-[10px] font-bold text-zinc-500 hover:text-white uppercase tracking-tighter">Clear</button>
+              </h2>
+              <div className="space-y-8">
+                {recentActivity.length > 0 ? recentActivity.slice(0, 5).map((act, i) => (
+                  <div key={i} className="flex space-x-4">
+                    <div className={`w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0`}>
+                      <Zap size={14} className="text-indigo-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-zinc-200 truncate">{act.title}</h4>
+                      <p className="text-[10px] font-medium text-zinc-500 mt-1">{new Date(act.timestamp).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center py-10 opacity-20">
+                    <div className="w-12 h-12 bg-zinc-800 rounded-full mx-auto mb-4" />
+                    <p className="text-[10px] font-black uppercase">Silent Mode</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8">
+              <h2 className="text-xl font-bold mb-6">Quick Settings</h2>
+              <div className="space-y-4">
+                {[
+                  { label: 'Public Profile', enabled: true },
+                  { label: 'Weekly Reports', enabled: true },
+                  { label: 'Sound Effects', enabled: false }
+                ].map((opt, i) => (
+                  <div key={i} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
+                    <span className="text-xs font-bold text-zinc-400">{opt.label}</span>
+                    <div className={`w-10 h-5 rounded-full relative transition-colors ${opt.enabled ? 'bg-indigo-600' : 'bg-zinc-800'}`}>
+                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${opt.enabled ? 'left-6' : 'left-1'}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full mt-8 py-3 bg-red-500/10 text-red-500 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                Sign Out
+              </button>
+            </section>
+          </div>
+        </div>
       </div>
     </div>
   );

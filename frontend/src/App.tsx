@@ -23,6 +23,8 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import EmailVerification from './pages/EmailVerification';
 import StudentVerification from './pages/StudentVerification';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // AI Tools Pages
 import AISummarizer from './pages/ai-tools/AISummarizer';
@@ -89,213 +91,215 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/features" element={<Features />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/help" element={<Help />} />
-              <Route path="/verify-email" element={<EmailVerification />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/auth" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/profile" element={<AdminProfile />} />
-              
-              {/* Protected Routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/student-verification" element={
-                <ProtectedRoute>
-                  <StudentVerification />
-                </ProtectedRoute>
-              } />
-              
-              {/* AI Tools Routes */}
-              <Route path="/ai-tools/summarizer" element={
-                <ProtectedRoute>
-                  <AISummarizer />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/quiz-generator" element={
-                <ProtectedRoute>
-                  <QuizGenerator />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/tutor" element={
-                <ProtectedRoute>
-                  <AITutor />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/study-planner" element={
-                <ProtectedRoute>
-                  <StudyPlanner />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/flashcards" element={
-                <ProtectedRoute>
-                  <FlashcardGenerator />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/essay-analyzer" element={
-                <ProtectedRoute>
-                  <EssayAnalyzer />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/concept-mapper" element={
-                <ProtectedRoute>
-                  <ConceptMapper />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/language-tutor" element={
-                <ProtectedRoute>
-                  <LanguageTutor />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/math-solver" element={
-                <ProtectedRoute>
-                  <MathSolver />
-                </ProtectedRoute>
-              } />
-              <Route path="/ai-tools/research-assistant" element={
-                <ProtectedRoute>
-                  <ResearchAssistant />
-                </ProtectedRoute>
-              } />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/help" element={<Help />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-              {/* Study Routes */}
-              <Route path="/study/rooms" element={
-                <ProtectedRoute>
-                  <StudyRooms />
-                </ProtectedRoute>
-              } />
-              <Route path="/study/groups" element={
-                <ProtectedRoute>
-                  <StudyGroups />
-                </ProtectedRoute>
-              } />
-              <Route path="/study/timer" element={
-                <ProtectedRoute>
-                  <StudyTimer />
-                </ProtectedRoute>
-              } />
-              <Route path="/study/goals" element={
-                <ProtectedRoute>
-                  <StudyGoals />
-                </ProtectedRoute>
-              } />
-              <Route path="/study/calendar" element={
-                <ProtectedRoute>
-                  <StudyCalendar />
-                </ProtectedRoute>
-              } />
-              <Route path="/study/materials" element={
-                <ProtectedRoute>
-                  <StudyMaterials />
-                </ProtectedRoute>
-              } />
-              <Route path="/study/notes" element={
-                <ProtectedRoute>
-                  <StudyNotes />
-                </ProtectedRoute>
-              } />
+        {/* Admin Routes */}
+        <Route path="/admin/auth" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
 
-              {/* Analytics Routes */}
-              <Route path="/analytics/learning" element={
-                <ProtectedRoute>
-                  <LearningAnalytics />
-                </ProtectedRoute>
-              } />
-              <Route path="/analytics/reports" element={
-                <ProtectedRoute>
-                  <ProgressReports />
-                </ProtectedRoute>
-              } />
-              <Route path="/analytics/insights" element={
-                <ProtectedRoute>
-                  <PerformanceInsights />
-                </ProtectedRoute>
-              } />
-              <Route path="/analytics/learning-paths" element={
-                <ProtectedRoute>
-                  <LearningPaths />
-                </ProtectedRoute>
-              } />
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        } />
+        <Route path="/student-verification" element={
+          <ProtectedRoute>
+            <StudentVerification />
+          </ProtectedRoute>
+        } />
 
-              {/* Community Routes */}
-              <Route path="/community" element={
-                <ProtectedRoute>
-                  <StudyCommunity />
-                </ProtectedRoute>
-              } />
-              <Route path="/community/buddies" element={
-                <ProtectedRoute>
-                  <StudyBuddies />
-                </ProtectedRoute>
-              } />
-              <Route path="/community/forums" element={
-                <ProtectedRoute>
-                  <DiscussionForums />
-                </ProtectedRoute>
-              } />
-              <Route path="/community/events" element={
-                <ProtectedRoute>
-                  <StudyEvents />
-                </ProtectedRoute>
-              } />
-              <Route path="/community/leaderboards" element={
-                <ProtectedRoute>
-                  <Leaderboards />
-                </ProtectedRoute>
-              } />
+        {/* AI Tools Routes */}
+        <Route path="/ai-tools/summarizer" element={
+          <ProtectedRoute>
+            <AISummarizer />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/quiz-generator" element={
+          <ProtectedRoute>
+            <QuizGenerator />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/tutor" element={
+          <ProtectedRoute>
+            <AITutor />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/study-planner" element={
+          <ProtectedRoute>
+            <StudyPlanner />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/flashcards" element={
+          <ProtectedRoute>
+            <FlashcardGenerator />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/essay-analyzer" element={
+          <ProtectedRoute>
+            <EssayAnalyzer />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/concept-mapper" element={
+          <ProtectedRoute>
+            <ConceptMapper />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/language-tutor" element={
+          <ProtectedRoute>
+            <LanguageTutor />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/math-solver" element={
+          <ProtectedRoute>
+            <MathSolver />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-tools/research-assistant" element={
+          <ProtectedRoute>
+            <ResearchAssistant />
+          </ProtectedRoute>
+        } />
 
-              {/* Resources Routes */}
-              <Route path="/resources/library" element={
-                <ProtectedRoute>
-                  <Library />
-                </ProtectedRoute>
-              } />
-              <Route path="/resources/courses" element={
-                <ProtectedRoute>
-                  <Courses />
-                </ProtectedRoute>
-              } />
-              <Route path="/resources/tutorials" element={
-                <ProtectedRoute>
-                  <Tutorials />
-                </ProtectedRoute>
-              } />
-              <Route path="/resources/templates" element={
-                <ProtectedRoute>
-                  <Templates />
-                </ProtectedRoute>
-              } />
-              <Route path="/resources/ai-models" element={
-                <ProtectedRoute>
-                  <AIModels />
-                </ProtectedRoute>
-              } />
+        {/* Study Routes */}
+        <Route path="/study/rooms" element={
+          <ProtectedRoute>
+            <StudyRooms />
+          </ProtectedRoute>
+        } />
+        <Route path="/study/groups" element={
+          <ProtectedRoute>
+            <StudyGroups />
+          </ProtectedRoute>
+        } />
+        <Route path="/study/timer" element={
+          <ProtectedRoute>
+            <StudyTimer />
+          </ProtectedRoute>
+        } />
+        <Route path="/study/goals" element={
+          <ProtectedRoute>
+            <StudyGoals />
+          </ProtectedRoute>
+        } />
+        <Route path="/study/calendar" element={
+          <ProtectedRoute>
+            <StudyCalendar />
+          </ProtectedRoute>
+        } />
+        <Route path="/study/materials" element={
+          <ProtectedRoute>
+            <StudyMaterials />
+          </ProtectedRoute>
+        } />
+        <Route path="/study/notes" element={
+          <ProtectedRoute>
+            <StudyNotes />
+          </ProtectedRoute>
+        } />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Analytics Routes */}
+        <Route path="/analytics/learning" element={
+          <ProtectedRoute>
+            <LearningAnalytics />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics/reports" element={
+          <ProtectedRoute>
+            <ProgressReports />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics/insights" element={
+          <ProtectedRoute>
+            <PerformanceInsights />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics/learning-paths" element={
+          <ProtectedRoute>
+            <LearningPaths />
+          </ProtectedRoute>
+        } />
+
+        {/* Community Routes */}
+        <Route path="/community" element={
+          <ProtectedRoute>
+            <StudyCommunity />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/buddies" element={
+          <ProtectedRoute>
+            <StudyBuddies />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/forums" element={
+          <ProtectedRoute>
+            <DiscussionForums />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/events" element={
+          <ProtectedRoute>
+            <StudyEvents />
+          </ProtectedRoute>
+        } />
+        <Route path="/community/leaderboards" element={
+          <ProtectedRoute>
+            <Leaderboards />
+          </ProtectedRoute>
+        } />
+
+        {/* Resources Routes */}
+        <Route path="/resources/library" element={
+          <ProtectedRoute>
+            <Library />
+          </ProtectedRoute>
+        } />
+        <Route path="/resources/courses" element={
+          <ProtectedRoute>
+            <Courses />
+          </ProtectedRoute>
+        } />
+        <Route path="/resources/tutorials" element={
+          <ProtectedRoute>
+            <Tutorials />
+          </ProtectedRoute>
+        } />
+        <Route path="/resources/templates" element={
+          <ProtectedRoute>
+            <Templates />
+          </ProtectedRoute>
+        } />
+        <Route path="/resources/ai-models" element={
+          <ProtectedRoute>
+            <AIModels />
+          </ProtectedRoute>
+        } />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
   );

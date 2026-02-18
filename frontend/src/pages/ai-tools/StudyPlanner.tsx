@@ -1,10 +1,32 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Target, Brain, Plus, CircleCheck as CheckCircle, CircleAlert as AlertCircle, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Target, Brain, Plus, CircleCheck as CheckCircle, TrendingUp } from 'lucide-react';
+import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
+interface Goal {
+  id: number;
+  title: string;
+  subject: string;
+  deadline: string;
+  priority: string;
+  progress: number;
+  estimatedHours: number;
+  completedHours: number;
+}
+
+interface ScheduleTask {
+  id: number;
+  title: string;
+  time: string;
+  date: string;
+  subject: string;
+  type: string;
+  completed: boolean;
+}
+
 const StudyPlanner = () => {
-  const [goals, setGoals] = useState([
+  const [goals, setGoals] = useState<Goal[]>([
     {
       id: 1,
       title: 'Complete Machine Learning Course',
@@ -37,7 +59,7 @@ const StudyPlanner = () => {
     }
   ]);
 
-  const [schedule, setSchedule] = useState([
+  const [schedule, setSchedule] = useState<ScheduleTask[]>([
     {
       id: 1,
       title: 'Machine Learning - Neural Networks',
@@ -75,6 +97,9 @@ const StudyPlanner = () => {
     priority: 'medium',
     estimatedHours: 10
   });
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [aiPlan, setAiPlan] = useState<any>(null);
+  const [planForm, setPlanForm] = useState({ subjects: '', timeAvailable: 10, goals: '' });
 
   const handleAddGoal = () => {
     if (!newGoal.title || !newGoal.subject || !newGoal.deadline) {
@@ -82,7 +107,7 @@ const StudyPlanner = () => {
       return;
     }
 
-    const goal = {
+    const goal: Goal = {
       id: Date.now(),
       ...newGoal,
       progress: 0,
@@ -101,17 +126,40 @@ const StudyPlanner = () => {
     toast.success('Study goal added successfully!');
   };
 
-  const generateAISchedule = () => {
-    toast.success('AI schedule generated! Optimized for your learning patterns.');
+  const generateAISchedule = async () => {
+    const subjects = planForm.subjects.trim()
+      ? planForm.subjects.split(',').map(s => s.trim()).filter(Boolean)
+      : goals.map(g => g.subject);
+
+    if (subjects.length === 0) {
+      toast.error('Please add study goals or enter subjects');
+      return;
+    }
+
+    setIsGeneratingPlan(true);
+    try {
+      const token = localStorage.getItem('edumind_token') || '';
+      const response = await aiAPI.generateStudyPlan(
+        { subjects, timeAvailable: planForm.timeAvailable, goals: planForm.goals || undefined },
+        token
+      );
+      setAiPlan(response.data.plan);
+      toast.success('AI study plan generated!');
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to generate study plan';
+      toast.error(msg);
+    } finally {
+      setIsGeneratingPlan(false);
+    }
   };
 
-  const toggleTaskComplete = (taskId) => {
-    setSchedule(prev => prev.map(task => 
+  const toggleTaskComplete = (taskId: number) => {
+    setSchedule(prev => prev.map(task =>
       task.id === taskId ? { ...task, completed: !task.completed } : task
     ));
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'text-red-600 bg-red-100';
       case 'medium': return 'text-yellow-600 bg-yellow-100';
@@ -120,8 +168,8 @@ const StudyPlanner = () => {
     }
   };
 
-  const getSubjectColor = (subject) => {
-    const colors = {
+  const getSubjectColor = (subject: string) => {
+    const colors: Record<string, string> = {
       'Computer Science': 'from-blue-500 to-blue-600',
       'Physics': 'from-purple-500 to-purple-600',
       'History': 'from-orange-500 to-orange-600',
@@ -133,7 +181,7 @@ const StudyPlanner = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -204,7 +252,7 @@ const StudyPlanner = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Study Goals */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -307,14 +355,14 @@ const StudyPlanner = () => {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="mb-3">
                       <div className="flex justify-between text-sm text-gray-600 mb-1">
                         <span>Progress</span>
                         <span>{goal.progress}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className={`bg-gradient-to-r ${getSubjectColor(goal.subject)} h-2 rounded-full transition-all duration-300`}
                           style={{ width: `${goal.progress}%` }}
                         ></div>
@@ -338,20 +386,79 @@ const StudyPlanner = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="space-y-6"
           >
-            
+
             {/* AI Schedule Generator */}
             <div className="bg-white rounded-2xl shadow-xl p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">AI Schedule Generator</h3>
               <p className="text-gray-600 mb-4">
-                Let AI create an optimized study schedule based on your goals, deadlines, and learning patterns.
+                Let AI create an optimized study schedule based on your goals and available time.
               </p>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Subjects (comma-separated, or leave blank to use goals)</label>
+                  <input
+                    type="text"
+                    value={planForm.subjects}
+                    onChange={(e) => setPlanForm(prev => ({ ...prev, subjects: e.target.value }))}
+                    placeholder="e.g. Math, Physics, History"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Hours per week: {planForm.timeAvailable}</label>
+                  <input
+                    type="range" min="1" max="40" value={planForm.timeAvailable}
+                    onChange={(e) => setPlanForm(prev => ({ ...prev, timeAvailable: parseInt(e.target.value) }))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Goals (optional)</label>
+                  <input
+                    type="text"
+                    value={planForm.goals}
+                    onChange={(e) => setPlanForm(prev => ({ ...prev, goals: e.target.value }))}
+                    placeholder="e.g. Pass final exams, master calculus"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
               <button
                 onClick={generateAISchedule}
-                className="w-full flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                disabled={isGeneratingPlan}
+                className="w-full flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-70"
               >
-                <Brain className="h-5 w-5" />
-                <span>Generate AI Schedule</span>
+                {isGeneratingPlan ? (
+                  <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" /><span>Generating...</span></>
+                ) : (
+                  <><Brain className="h-5 w-5" /><span>Generate AI Schedule</span></>
+                )}
               </button>
+
+              {/* AI Plan Results */}
+              {aiPlan && (
+                <div className="mt-4 p-4 bg-purple-50 rounded-xl">
+                  <h4 className="font-semibold text-purple-900 mb-2">Your AI Study Plan</h4>
+                  {typeof aiPlan === 'string' ? (
+                    <p className="text-sm text-purple-800 whitespace-pre-wrap">{aiPlan}</p>
+                  ) : aiPlan.weeks ? (
+                    <div className="space-y-3">
+                      {aiPlan.weeks.map((week: any, idx: number) => (
+                        <div key={idx} className="bg-white rounded-lg p-3">
+                          <p className="font-medium text-gray-900 text-sm">Week {week.weekNumber}: {week.focus}</p>
+                          {week.dailySchedule?.map((day: any, dIdx: number) => (
+                            <p key={dIdx} className="text-xs text-gray-600 mt-1">
+                              <strong>{day.day}:</strong> {day.subject} — {day.duration} ({day.topics})
+                            </p>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <pre className="text-xs text-purple-800 whitespace-pre-wrap">{JSON.stringify(aiPlan, null, 2)}</pre>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Today's Schedule */}
@@ -359,41 +466,37 @@ const StudyPlanner = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
               <div className="space-y-3">
                 {schedule.map((task) => (
-                  <div 
-                    key={task.id} 
-                    className={`p-4 rounded-xl border-2 transition-colors ${
-                      task.completed 
-                        ? 'border-green-200 bg-green-50' 
-                        : 'border-gray-200 hover:border-blue-300'
-                    }`}
+                  <div
+                    key={task.id}
+                    className={`p-4 rounded-xl border-2 transition-colors ${task.completed
+                      ? 'border-green-200 bg-green-50'
+                      : 'border-gray-200 hover:border-blue-300'
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3">
                         <button
                           onClick={() => toggleTaskComplete(task.id)}
-                          className={`mt-1 p-1 rounded-full ${
-                            task.completed 
-                              ? 'text-green-600' 
-                              : 'text-gray-400 hover:text-green-600'
-                          }`}
+                          className={`mt-1 p-1 rounded-full ${task.completed
+                            ? 'text-green-600'
+                            : 'text-gray-400 hover:text-green-600'
+                            }`}
                         >
                           <CheckCircle className="h-5 w-5" />
                         </button>
                         <div>
-                          <h4 className={`font-medium ${
-                            task.completed ? 'text-green-800 line-through' : 'text-gray-900'
-                          }`}>
+                          <h4 className={`font-medium ${task.completed ? 'text-green-800 line-through' : 'text-gray-900'
+                            }`}>
                             {task.title}
                           </h4>
                           <p className="text-sm text-gray-600">{task.subject}</p>
                           <p className="text-sm text-gray-500">{task.time}</p>
                         </div>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        task.type === 'study' ? 'bg-blue-100 text-blue-800' :
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${task.type === 'study' ? 'bg-blue-100 text-blue-800' :
                         task.type === 'practice' ? 'bg-purple-100 text-purple-800' :
-                        'bg-orange-100 text-orange-800'
-                      }`}>
+                          'bg-orange-100 text-orange-800'
+                        }`}>
                         {task.type}
                       </span>
                     </div>
@@ -409,7 +512,7 @@ const StudyPlanner = () => {
                 <h3 className="text-lg font-semibold">AI Study Tip</h3>
               </div>
               <p className="text-blue-100">
-                Based on your learning patterns, you're most productive between 9-11 AM. 
+                Based on your learning patterns, you're most productive between 9-11 AM.
                 Schedule your most challenging topics during this time for better retention.
               </p>
             </div>
