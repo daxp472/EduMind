@@ -107,32 +107,35 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link
                 to="/signup"
-                className="group relative px-8 py-4 bg-white text-black font-bold rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)] overflow-hidden"
+                className="group relative px-10 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(79,70,229,0.3)] overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-0 group-hover:opacity-10 transition-opacity" />
-                <span className="relative flex items-center">
-                  Get Started for Free
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative flex items-center gap-3 tracking-widest uppercase text-xs">
+                  Begin Initialization
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>
 
               <Link
                 to="/features"
-                className="group px-8 py-4 bg-zinc-900 border border-zinc-800 text-white font-bold rounded-2xl hover:bg-zinc-800 transition-all flex items-center"
+                className="group px-10 py-5 bg-white/5 border border-white/10 backdrop-blur-xl text-white font-black rounded-2xl hover:bg-white/10 transition-all flex items-center shadow-2xl"
               >
-                <Play className="mr-2 h-4 w-4 fill-white text-white group-hover:scale-110 transition-transform" />
-                See How It Works
+                <span className="flex items-center gap-3 tracking-widest uppercase text-xs text-zinc-300 group-hover:text-white transition-colors">
+                  <Play className="h-4 w-4 fill-white translate-y-[1px]" />
+                  System Blueprint
+                </span>
               </Link>
             </div>
 
             {/* Trusted By */}
-            <div className="mt-20 pt-10 border-t border-zinc-800/50">
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-8">Empowering students from elite institutions</p>
-              <div className="flex flex-wrap justify-center items-center gap-12 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-                <div className="text-2xl font-serif font-bold italic">HARVARD</div>
-                <div className="text-2xl font-sans font-black tracking-tighter">STANFORD</div>
-                <div className="text-2xl font-mono font-bold">MIT_LABS</div>
-                <div className="text-2xl font-serif font-bold tracking-widest text-[0.8em]">OXFORD</div>
+            <div className="mt-24 pt-12 border-t border-white/5 relative">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+              <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-10">Neural Node Connectivity</p>
+              <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-30 grayscale hover:opacity-60 hover:grayscale-0 transition-all duration-1000">
+                <div className="text-xl md:text-2xl font-serif font-black italic tracking-tighter">HARVARD</div>
+                <div className="text-xl md:text-2xl font-sans font-black tracking-[-0.1em]">STANFORD</div>
+                <div className="text-xl md:text-2xl font-mono font-bold uppercase">MIT_LABS</div>
+                <div className="text-xl md:text-2xl font-serif font-bold tracking-widest">OXFORD</div>
               </div>
             </div>
           </motion.div>
@@ -140,20 +143,22 @@ const LandingPage = () => {
       </section>
 
       {/* Interactive Features Grid */}
-      <section className="py-32 relative bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-20 text-center lg:text-left flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <section className="py-32 relative bg-zinc-950/50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="mb-24 text-center lg:text-left flex flex-col lg:flex-row lg:items-end justify-between gap-10">
             <div className="max-w-2xl">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">Built for the <br /><span className="text-indigo-500">Modern Polymath</span></h2>
-              <p className="text-zinc-400 text-lg">Integrated tools that communicate with each other to build your personal knowledge base.</p>
+              <h2 className="text-4xl md:text-6xl font-black mb-8 tracking-tighter uppercase">
+                Neural <span className="text-indigo-500">Framework</span>
+              </h2>
+              <p className="text-zinc-500 text-lg font-medium leading-relaxed">Integrated tools that execute in parallel to build your personal knowledge architecture.</p>
             </div>
-            <Link to="/features" className="group flex items-center text-white font-bold hover:text-indigo-400 transition-colors">
-              Explore the full ecosystem
-              <ChevronRight className="ml-1 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            <Link to="/features" className="group flex items-center text-xs font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all bg-white/5 px-6 py-4 rounded-2xl border border-white/5">
+              Protocol Specs
+              <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -161,14 +166,15 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: feature.delay }}
-                className="group relative p-8 bg-zinc-900/50 border border-zinc-800 rounded-3xl hover:bg-zinc-900 hover:border-zinc-700 transition-all cursor-default"
+                className="group relative p-10 bg-zinc-900 border border-white/5 rounded-[2.5rem] hover:border-indigo-500/50 transition-all cursor-default overflow-hidden"
               >
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform`}>
-                  <feature.icon className="h-6 w-6 text-white" />
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-8 shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-transform`}>
+                  <feature.icon className="h-7 w-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-400 transition-colors">{feature.title}</h3>
-                <p className="text-zinc-500 text-sm leading-relaxed mb-6">{feature.description}</p>
-                <div className="w-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:w-full transition-all duration-500 rounded-full" />
+                <h3 className="text-xl font-black mb-4 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{feature.title}</h3>
+                <p className="text-zinc-500 text-sm font-medium leading-relaxed mb-8">{feature.description}</p>
+                <div className="w-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 group-hover:w-full transition-all duration-700 rounded-full" />
               </motion.div>
             ))}
           </div>
@@ -176,39 +182,41 @@ const LandingPage = () => {
       </section>
 
       {/* Social Proof / Dashboard Preview Section */}
-      <section className="py-32 bg-[#050505] relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/5 blur-[150px] rounded-full" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative bg-zinc-900/30 border border-white/5 backdrop-blur-md rounded-[2.5rem] p-8 md:p-16 overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="py-40 bg-[#050505] relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-indigo-600/5 blur-[180px] rounded-full" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="relative bg-zinc-900/40 border border-white/5 backdrop-blur-3xl rounded-[3.5rem] p-10 md:p-20 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
               <div>
-                <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex -space-x-2">
+                <div className="flex items-center space-x-3 mb-10">
+                  <div className="flex -space-x-3">
                     {[...Array(4)].map((_, i) => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" />
+                      <div key={i} className="w-10 h-10 rounded-2xl border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img src={`https://i.pravatar.cc/100?img=${i + 15}`} alt="User" />
                       </div>
                     ))}
                   </div>
-                  <div className="ps-2">
-                    <div className="flex text-amber-400">
-                      {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
+                  <div className="ps-4">
+                    <div className="flex text-amber-400 gap-0.5">
+                      {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                     </div>
-                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Trusted by 12,000+ Students</p>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mt-1">12K+ Verified Nodes</p>
                   </div>
                 </div>
-                <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">Master complex subjects in half the time.</h2>
-                <p className="text-zinc-400 text-lg mb-8">
-                  "EduMind changed how I approach my Medical Degree. The AI summarizer handles
-                  research papers like a pro, and the adaptive quizzes are a lifesaver for exams."
+                <h2 className="text-4xl md:text-6xl font-black mb-10 leading-[0.9] tracking-tighter uppercase">
+                  Execute at <br />
+                  <span className="text-indigo-500">Peak Capacity.</span>
+                </h2>
+                <p className="text-zinc-400 text-xl font-medium mb-12 leading-relaxed">
+                  "EduMind re-architected how I process information. The high-fidelity summaries and adaptive loops are essential for complex system mastery."
                 </p>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                <div className="flex items-center space-x-5">
+                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/20">
                     <Users className="text-indigo-400" />
                   </div>
                   <div>
-                    <p className="font-bold">Sarah Jenkins</p>
-                    <p className="text-sm text-zinc-500">Medical Student, Johns Hopkins</p>
+                    <p className="font-black text-white uppercase tracking-tight">Sarah Jenkins</p>
+                    <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Medical Resident, Johns Hopkins</p>
                   </div>
                 </div>
               </div>
@@ -217,32 +225,32 @@ const LandingPage = () => {
                 initial={{ rotate: 10, y: 50, opacity: 0 }}
                 whileInView={{ rotate: -5, y: 0, opacity: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 1, ease: "easeOut" }}
+                transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                 className="relative hidden lg:block"
               >
-                <div className="bg-zinc-800/80 rounded-3xl border border-white/10 p-4 shadow-2xl skew-x-1">
-                  <div className="flex items-center justify-between mb-4 px-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 rounded-full bg-rose-500" />
-                      <div className="w-2 h-2 rounded-full bg-amber-500" />
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <div className="bg-zinc-900/80 rounded-[2.5rem] border border-white/10 p-6 shadow-2xl relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-[2.5rem]" />
+                  <div className="flex items-center justify-between mb-8 px-2 relative z-10">
+                    <div className="flex space-x-2">
+                      <div className="w-3 h-3 rounded-full bg-white/5 border border-white/10" />
+                      <div className="w-3 h-3 rounded-full bg-white/5 border border-white/10" />
                     </div>
-                    <div className="h-4 w-32 bg-white/5 rounded-full" />
+                    <div className="h-6 w-40 bg-white/5 border border-white/10 rounded-full" />
                   </div>
-                  <div className="space-y-4">
-                    <div className="h-20 w-full bg-indigo-500/10 rounded-2xl border border-indigo-500/20 p-4">
-                      <div className="h-2 w-1/2 bg-indigo-500/30 rounded-full mb-3" />
-                      <div className="h-2 w-3/4 bg-indigo-500/20 rounded-full" />
+                  <div className="space-y-6 relative z-10">
+                    <div className="h-24 w-full bg-indigo-500/10 rounded-2xl border border-indigo-500/20 p-6">
+                      <div className="h-2 w-1/2 bg-indigo-400/40 rounded-full mb-4" />
+                      <div className="h-2 w-3/4 bg-indigo-400/20 rounded-full" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="h-32 bg-white/5 rounded-2xl border border-white/5" />
-                      <div className="h-32 bg-white/5 rounded-2xl border border-white/5" />
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="h-40 bg-white/5 rounded-3xl border border-white/5" />
+                      <div className="h-40 bg-white/5 rounded-3xl border border-white/5" />
                     </div>
                   </div>
                 </div>
                 {/* Decorators */}
-                <div className="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/30 blur-2xl rounded-full" />
-                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 blur-2xl rounded-full" />
+                <div className="absolute -top-12 -right-12 w-40 h-40 bg-indigo-600/20 blur-3xl rounded-full" />
+                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-purple-600/10 blur-3xl rounded-full" />
               </motion.div>
             </div>
           </div>
@@ -250,33 +258,37 @@ const LandingPage = () => {
       </section>
 
       {/* Footer CTA */}
-      <section className="py-32 bg-[#050505]">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+      <section className="py-40 bg-[#050505] relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-900/5 to-transparent" />
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl md:text-6xl font-black mb-8">Ready to evolve?</h2>
-            <p className="text-zinc-400 text-xl mb-12">
-              Join the new generation of learners mastering the future with AI.
+            <h2 className="text-5xl md:text-8xl font-black mb-10 tracking-tighter uppercase leading-[0.9]">
+              Ready to <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">Evolve?</span>
+            </h2>
+            <p className="text-zinc-500 text-xl font-medium mb-16 max-w-2xl mx-auto">
+              Join the next generation of accelerated learners. Unlock your neural potential today.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <Link
                 to="/signup"
-                className="px-10 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl font-bold text-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all hover:scale-105"
+                className="px-12 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:shadow-[0_0_50px_rgba(99,102,241,0.4)] transition-all hover:scale-105 active:scale-95"
               >
-                Start Free Trial
+                Access System
               </Link>
               <Link
                 to="/pricing"
-                className="px-10 py-5 bg-zinc-900 border border-zinc-800 rounded-2xl font-bold text-lg hover:bg-zinc-800 transition-all flex items-center justify-center"
+                className="px-12 py-6 bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-white/10 transition-all flex items-center justify-center text-zinc-300 hover:text-white"
               >
-                View All Plans
+                Tier Analysis
               </Link>
             </div>
-            <p className="mt-8 text-zinc-600 text-sm">No credit card required. Cancel anytime.</p>
+            <p className="mt-12 text-zinc-700 text-[10px] font-black uppercase tracking-widest">No credit card required • Infinite potential</p>
           </motion.div>
         </div>
       </section>
