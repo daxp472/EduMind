@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Brain, User, Settings, LogOut, Home, BookOpen, Users, BarChart3, FileText, Target, Calendar, MessageSquare, Search } from 'lucide-react';
+import { Menu, X, Brain, User, Settings, LogOut, Home, BookOpen, BarChart3, FileText, Target, Calendar, MessageSquare, ChevronDown, Sparkles, Users, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -27,7 +27,7 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: 'Home', path: '/home', icon: Home },
+    { name: 'Home', path: '/', icon: Home },
     { name: 'Features', path: '/features', icon: Target },
     {
       name: 'AI Tools',
@@ -95,34 +95,38 @@ const Navbar = () => {
         { name: 'Learning Paths', path: '/analytics/learning-paths', icon: BarChart3 },
       ]
     },
-    { name: 'Pricing', path: '/pricing', icon: Target },
+    { name: 'Pricing', path: '/pricing', icon: Sparkles },
+    { name: 'About', path: '/about', icon: BookOpen },
+    { name: 'Contact', path: '/contact', icon: MessageSquare },
   ];
 
   return (
-    <nav className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/90 backdrop-blur-md border-b border-blue-100 shadow-sm' 
-        : 'bg-white/80 backdrop-blur-md border-b border-blue-100'
-    }`}>
+    <nav className={`fixed w-full top-0 z-50 transition-all duration-500 ${isScrolled
+      ? 'bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 py-2'
+      : 'bg-transparent py-4'
+      }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-3 group">
               <motion.div
-                whileHover={{ rotate: 360, scale: 1.1 }}
-                transition={{ duration: 0.6 }}
-                className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl"
+                whileHover={{ rotate: 180, scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="p-2.5 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-lg shadow-indigo-500/20"
               >
                 <Brain className="h-6 w-6 text-white" />
               </motion.div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                EduMind
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tighter text-white group-hover:text-indigo-400 transition-colors">
+                  EDUMIND
+                </span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-zinc-500">Neural Academy</span>
+              </div>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-2">
             {navItems.map((item) => (
               <div
                 key={item.name}
@@ -132,113 +136,106 @@ const Navbar = () => {
               >
                 <Link
                   to={item.path}
-                  className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
-                    location.pathname.startsWith(item.path.split('/').slice(0, 2).join('/'))
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-xl ${location.pathname.startsWith(item.path.split('/').slice(0, 2).join('/'))
+                    ? 'text-white bg-white/10'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    }`}
                 >
                   <item.icon className="h-4 w-4" />
                   <span>{item.name}</span>
-                  {item.dropdown && <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>}
+                  {item.dropdown && <ChevronDown className={`h-3 w-3 ml-1 transition-transform duration-300 ${activeDropdown === item.name ? 'rotate-180' : ''}`} />}
                 </Link>
 
-                {item.dropdown && activeDropdown === item.name && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2"
-                  >
-                    {item.dropdown.map((dropdownItem) => (
-                      <Link
-                        key={dropdownItem.name}
-                        to={dropdownItem.path}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
-                          location.pathname === dropdownItem.path
-                            ? 'text-blue-600 bg-blue-50'
-                            : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                        }`}
-                      >
-                        <dropdownItem.icon className="h-4 w-4" />
-                        <span>{dropdownItem.name}</span>
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
+                <AnimatePresence>
+                  {item.dropdown && activeDropdown === item.name && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className={`absolute left-0 mt-2 bg-zinc-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-3 overflow-hidden ${item.dropdown.length > 6 ? 'w-[450px] grid grid-cols-2' : 'w-56'}`}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+                      {item.dropdown.map((dropdownItem) => (
+                        <Link
+                          key={dropdownItem.name}
+                          to={dropdownItem.path}
+                          className={`flex items-center space-x-3 px-4 py-2.5 text-xs font-bold transition-all relative z-10 ${location.pathname === dropdownItem.path
+                            ? 'text-white bg-white/5'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                          <dropdownItem.icon className="h-4 w-4 text-indigo-400" />
+                          <span className="truncate">{dropdownItem.name}</span>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ))}
 
+            <div className="h-6 w-[1px] bg-white/10 mx-4" />
+
             {user ? (
-              <div className="relative ml-4">
+              <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="flex items-center space-x-3 p-1.5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-[10px] font-black group-hover:scale-105 transition-transform">
+                    {user.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                  <span className="text-xs font-bold text-zinc-300 mr-2">{user.name.split(' ')[0]}</span>
                 </button>
 
                 <AnimatePresence>
                   {profileOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200"
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      className="absolute right-0 mt-3 w-56 bg-zinc-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-3 overflow-hidden"
                     >
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-lg"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                        <span>Dashboard</span>
-                      </Link>
-                      <Link
-                        to="/profile"
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <User className="h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                      <Link
-                        to="/settings"
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
+                      {[
+                        { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
+                        { icon: User, label: 'Profile Settings', path: '/profile' },
+                        { icon: Settings, label: 'Preferences', path: '/settings' },
+                      ].map((item, idx) => (
+                        <Link
+                          key={idx}
+                          to={item.path}
+                          className="flex items-center space-x-3 px-4 py-3 text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <item.icon className="h-4 w-4 text-indigo-400" />
+                          <span>{item.label}</span>
+                        </Link>
+                      ))}
+                      <div className="h-[1px] bg-white/10 my-2 mx-4" />
                       <button
                         onClick={handleLogout}
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg w-full text-left"
+                        className="flex items-center space-x-3 px-4 py-3 text-xs font-bold text-red-500 hover:bg-red-500/10 w-full text-left transition-all"
                       >
                         <LogOut className="h-4 w-4" />
-                        <span>Logout</span>
+                        <span>Sign Out</span>
                       </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="flex items-center space-x-4 ml-4">
+              <div className="flex items-center space-x-3 ml-4">
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium"
+                  className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white px-4 py-2 transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105"
+                  className="bg-white text-black px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all shadow-lg shadow-white/10"
                 >
-                  Sign Up
+                  Join Now
                 </Link>
               </div>
             )}
@@ -248,7 +245,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+              className="p-2 text-zinc-400 hover:text-white bg-white/5 rounded-xl border border-white/5 transition-all"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -260,40 +257,32 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-md border-t border-blue-100"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="fixed inset-0 top-[72px] bg-[#050505]/95 backdrop-blur-2xl z-40 md:hidden border-t border-white/5 overflow-y-auto"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 max-h-[80vh] overflow-y-auto">
+            <div className="px-6 py-8 space-y-8">
               {navItems.map((item) => (
-                <div key={item.name}>
+                <div key={item.name} className="space-y-4">
                   <Link
                     to={item.path}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                      location.pathname.startsWith(item.path.split('/').slice(0, 2).join('/'))
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                    }`}
+                    className="flex items-center space-x-3 text-lg font-black tracking-tight text-white"
                     onClick={() => !item.dropdown && setIsOpen(false)}
                   >
-                    <item.icon className="h-5 w-5" />
+                    <item.icon className="h-5 w-5 text-indigo-500" />
                     <span>{item.name}</span>
                   </Link>
                   {item.dropdown && (
-                    <div className="pl-8 space-y-1">
+                    <div className="grid grid-cols-1 gap-3 pl-8">
                       {item.dropdown.map((dropdownItem) => (
                         <Link
                           key={dropdownItem.name}
                           to={dropdownItem.path}
-                          className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                            location.pathname === dropdownItem.path
-                              ? 'text-blue-600 bg-blue-50'
-                              : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                          }`}
+                          className="text-sm font-bold text-zinc-500 hover:text-indigo-400 py-1 flex items-center space-x-3"
                           onClick={() => setIsOpen(false)}
                         >
-                          <dropdownItem.icon className="h-4 w-4" />
+                          <div className="w-1 h-1 bg-zinc-800 rounded-full" />
                           <span>{dropdownItem.name}</span>
                         </Link>
                       ))}
@@ -302,57 +291,42 @@ const Navbar = () => {
                 </div>
               ))}
 
-              {user ? (
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                  <div className="px-3 py-2 text-sm text-gray-500">
-                    Signed in as {user.name}
+              <div className="pt-8 border-t border-white/5 space-y-6">
+                {user ? (
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Active Account</p>
+                    <div className="flex items-center space-x-4 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center font-black">
+                        {user.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-bold text-white">{user.name}</p>
+                        <p className="text-xs text-zinc-500">{user.email}</p>
+                      </div>
+                    </div>
+                    <Link to="/dashboard" className="block text-zinc-400 font-bold hover:text-white" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                    <Link to="/profile" className="block text-zinc-400 font-bold hover:text-white" onClick={() => setIsOpen(false)}>Profile</Link>
+                    <button onClick={handleLogout} className="text-red-500 font-bold uppercase text-xs tracking-widest pt-4">Sign Out</button>
                   </div>
-                  <Link
-                    to="/dashboard"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Settings
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-gray-200 pt-3 mt-3 space-y-1">
-                  <Link
-                    to="/login"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="block px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Link
+                      to="/login"
+                      className="px-6 py-4 rounded-2xl bg-white/5 border border-white/5 text-center font-black text-white"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      LOGIN
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="px-6 py-4 rounded-2xl bg-white text-black text-center font-black shadow-xl shadow-indigo-500/20"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      JOIN
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
