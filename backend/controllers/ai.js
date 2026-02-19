@@ -46,12 +46,40 @@ const buildPrompt = (tool, params) => {
         4. Proposed Solution (Innovative approach, Stack, Impact)
         5. Roadmap & Plan (Timeline, Milestones, Methodology)
         ...and other relevant slides based on the content.
-        Maintain a high-fidelity, professional tone suitable for a hackathon pitch.
+        Maintain a high-fidelity, professional tone suitable for a pitch or proposal.
+        
+        Content:\n\n${content}`;
+      }
+      if (params.type === 'academic') {
+        return `Execute a high-fidelity academic synthesis of the following material. 
+        Focus on: 
+        - Primary Thesis/Thesis Statement
+        - Methodological Approach
+        - Critical Data Points & Evidence
+        - Conclusions & Implications
+        Maintain a formal, scholarly tone.
+        
+        Content:\n\n${content}`;
+      }
+      if (params.type === 'executive') {
+        return `Produce an executive-level intelligence brief.
+        Focus on:
+        - High-level Strategic Impact
+        - Key Decision Points
+        - Resource Implications & ROI
+        - Concise Action Items
+        Use sharp, professional business language.
+        
+        Content:\n\n${content}`;
+      }
+      if (params.type === 'bullet-points') {
+        return `Deconstruct the following content into a "Neural Hierarchy" (Structured Bullet Points).
+        Use a logical hierarchy with indented supporting points. 
+        Focus on structural clarity and info-density.
         
         Content:\n\n${content}`;
       }
       return `Transform the following content into a professional, high-fidelity ${params.length || 'medium'} synthesis. 
-      If the content looks like a proposal, pitch deck, or academic paper, maintain a structured professional format (e.g., Executive Summary, Key Challenges, Proposed Strategy).
       Synthesis Type: ${params.type || 'General Intelligence'}
       
       Content:\n\n${content}`;
@@ -288,10 +316,17 @@ const getMockResponse = (tool, params) => {
 // @access  Private
 exports.getAIHistory = async (req, res, next) => {
   try {
-    const history = await AIRequest.find({
-      user: req.user.id,
+    const { tool } = req.query;
+    const query = {
+      user: req.user._id, // Use explicit _id for MongoDB reliability
       success: true
-    })
+    };
+
+    if (tool) {
+      query.tool = tool;
+    }
+
+    const history = await AIRequest.find(query)
       .sort('-createdAt')
       .limit(20);
 

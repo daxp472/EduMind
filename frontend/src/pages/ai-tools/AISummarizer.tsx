@@ -32,7 +32,7 @@ const AISummarizer = () => {
       const token = localStorage.getItem('edumind_token');
       if (!token) return;
       setIsLoadingHistory(true);
-      const res = await aiAPI.getHistory(token);
+      const res = await aiAPI.getHistory(token, 'summarizer');
       if (res.success) {
         setHistory(res.data);
       }

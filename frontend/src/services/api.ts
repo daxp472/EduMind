@@ -215,6 +215,28 @@ export const aiAPI = {
 
     return response.json();
   },
+
+  // Get AI history
+  getHistory: async (token: string, tool?: string) => {
+    const url = tool
+      ? `${API_BASE_URL}/ai/history?tool=${tool}`
+      : `${API_BASE_URL}/ai/history`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch AI history');
+    }
+
+    return response.json();
+  },
 };
 
 // Study Materials API
