@@ -4,16 +4,16 @@ const AIRequestSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   tool: {
     type: String,
     required: true,
     enum: [
-      'summarizer', 
-      'quiz-generator', 
-      'tutor', 
-      'study-planner', 
+      'summarizer',
+      'quiz-generator',
+      'tutor',
+      'study-planner',
       'flashcard-generator',
       'essay-analyzer',
       'concept-mapper',

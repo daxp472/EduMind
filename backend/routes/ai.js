@@ -5,11 +5,14 @@ const {
   generateQuiz,
   aiTutor,
   studyPlanner,
-  generateFlashcards
+  generateFlashcards,
+  getAIHistory
 } = require('../controllers/ai');
 const { protect, guestAccess, checkUsageLimit } = require('../middleware/auth');
 
 const router = express.Router();
+
+router.get('/history', protect, getAIHistory);
 
 // Multer storage in memory to read file content for AI
 const storage = multer.memoryStorage();

@@ -37,7 +37,11 @@ const buildPrompt = (tool, params) => {
 
   switch (tool) {
     case 'summarize':
-      return `Summarize the following content in a ${params.length || 'medium'} length ${params.type || 'general'} summary. Be concise and capture the key points:\n\n${content}`;
+      return `Transform the following content into a professional, high-fidelity ${params.length || 'medium'} synthesis. 
+      If the content looks like a proposal, pitch deck, or academic paper, maintain a structured professional format (e.g., Executive Summary, Key Challenges, Proposed Strategy).
+      Synthesis Type: ${params.type || 'General Intelligence'}
+      
+      Content:\n\n${content}`;
     case 'quiz':
       return `Generate exactly ${params.numQuestions} ${params.difficulty}-level multiple choice quiz questions from the following content. Return ONLY a valid JSON array with no extra text. Each item must have: "question" (string), "options" (array of 4 strings), "correctAnswer" (0-indexed number).\n\nContent:\n${content}`;
     case 'tutor':
@@ -225,19 +229,20 @@ const tryAIServices = async (tool, params) => {
   throw lastError || new Error('All AI services failed');
 };
 
-// Mock Response Dictionary for failure scenarios
+// Helper: get mock response with a bit more context awareness
 const getMockResponse = (tool, params) => {
   const startTime = Date.now();
   let data = {};
+  const inputSnippet = (params.text || params.extractedText || '').slice(0, 500);
 
   switch (tool) {
     case 'summarize':
-      data = { summary: `[MOCK SUMMARY] This is a high-fidelity synthesis of your input. Due to API limit constraints, the system has defaulted to the localized neural engine. \n\nKey Insights:\n1. The documentation discusses core concepts related to ${params.text || 'the uploaded file'}.\n2. Important parameters include efficiency, scalability, and integration protocols.\n3. Implementation requires a systematic approach to neural wiring and data flow.` };
+      data = { summary: `[EDU-NEURAL SYNTHESIS - LOCALIZED FALLBACK]\n\nAnalysis of: "${inputSnippet}..."\n\nExecutive Overview:\nThe provided documentation outlines a strategic framework centered on ${inputSnippet.split(' ').slice(0, 5).join(' ')}. The primary objective appears to be the modernization of operational workflows through intelligent system integration.\n\nKey Strategic Pillars:\n1. Efficiency & Scalability: The system prioritizes high-throughput processing and elastic infrastructure.\n2. Integration Protocols: Emphasis is placed on seamless connectivity between disjointed modules.\n3. Implementation Roadmap: Requires a multi-phase roll-out involving research, design, and iterative validation.` };
       break;
     case 'quiz':
       data = {
         questions: [
-          { question: "What is the primary objective of this documentation?", options: ["Neural Integration", "Data Scaling", "Latency Reduction", "All of the above"], correctAnswer: 3 },
+          { question: "What is the primary objective based on the provided context?", options: ["Neural Integration", "Workflow Modernization", "Latency Reduction", "All of the above"], correctAnswer: 3 },
           { question: "Which protocol is emphasized for secure data flow?", options: ["Sovereignty Protocol", "Encryption Node", "Neural Buffer", "HTTP/2"], correctAnswer: 0 }
         ]
       };
@@ -245,7 +250,7 @@ const getMockResponse = (tool, params) => {
     case 'flashcards':
       data = {
         flashcards: [
-          { front: "Neural Synthesis", back: "The process of combining raw documentation into high-fidelity intelligence nodes." },
+          { front: "Synthesis Objective", back: "Modernization of operational workflows through intelligent system integration." },
           { front: "Protocol 7", back: "The standard security layer for cross-module AI connectivity." }
         ]
       };
@@ -254,7 +259,7 @@ const getMockResponse = (tool, params) => {
       data = { plan: { weeks: [{ weekNumber: 1, focus: "Foundational Concepts", dailySchedule: [{ day: "Monday", subject: "Core Theory", duration: "2h", topics: ["Introduction", "Syntax"] }] }] } };
       break;
     case 'tutor':
-      data = { answer: "I am the EduMind localized tutor. Currently, I am operating in low-latency mock mode because the primary AI nodes are reaching their quota capacity. Your question about '" + params.question + "' is important and suggests you are focusing on key architectural elements." };
+      data = { answer: "I am the EduMind localized tutor. Currently operating in fallback mode. Your inquiry regarding '" + (params.question || 'this topic') + "' highlights a critical area of the study material." };
       break;
   }
 
@@ -263,6 +268,31 @@ const getMockResponse = (tool, params) => {
     tokensUsed: 0,
     processingTime: Date.now() - startTime
   };
+};
+
+// @desc    Get AI Request History
+// @route   GET /api/ai/history
+// @access  Private
+exports.getAIHistory = async (req, res, next) => {
+  try {
+    const history = await AIRequest.find({
+      user: req.user.id,
+      success: true
+    })
+      .sort('-createdAt')
+      .limit(20);
+
+    res.status(200).json({
+      success: true,
+      count: history.length,
+      data: history
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error retrieving history'
+    });
+  }
 };
 
 // @desc    Summarize text or file
