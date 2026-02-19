@@ -37,6 +37,19 @@ const buildPrompt = (tool, params) => {
 
   switch (tool) {
     case 'summarize':
+      if (params.type === 'presentation') {
+        return `Transform the following content into a professional SLIDE-BY-SLIDE presentation outline.
+        Structure it exactly for a 10-slide deck including:
+        1. Title Slide (Team, Members, Contact, Problem)
+        2. Problem Overview (Background, Significance, Impact)
+        3. Pain Point Analysis (Detailed challenges)
+        4. Proposed Solution (Innovative approach, Stack, Impact)
+        5. Roadmap & Plan (Timeline, Milestones, Methodology)
+        ...and other relevant slides based on the content.
+        Maintain a high-fidelity, professional tone suitable for a hackathon pitch.
+        
+        Content:\n\n${content}`;
+      }
       return `Transform the following content into a professional, high-fidelity ${params.length || 'medium'} synthesis. 
       If the content looks like a proposal, pitch deck, or academic paper, maintain a structured professional format (e.g., Executive Summary, Key Challenges, Proposed Strategy).
       Synthesis Type: ${params.type || 'General Intelligence'}
