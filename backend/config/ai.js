@@ -6,14 +6,14 @@ class AIServiceManager {
         name: 'OpenAI',
         keys: (process.env.OPENAI_API_KEYS || process.env.OPENAI_API_KEY || '').split(',').filter(Boolean),
         baseUrl: 'https://api.openai.com/v1',
-        model: 'gpt-4o', // Upgraded to 4o for vision/multimodal
+        model: 'gpt-4o-mini',
         enabled: !!(process.env.OPENAI_API_KEYS || process.env.OPENAI_API_KEY)
       },
       {
         name: 'Gemini',
         keys: (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '').split(',').filter(Boolean),
         baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
-        model: 'gemini-1.5-flash', // Optimized for speed and multimodal
+        model: 'gemini-1.5-flash',
         enabled: !!(process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY)
       },
       {
@@ -24,6 +24,15 @@ class AIServiceManager {
         enabled: !!(process.env.GROK_API_KEYS || process.env.GROK_API_KEY)
       }
     ];
+
+    // Sanitize: Disable services with placeholder keys
+    this.services.forEach(s => {
+      const hasRealKey = s.keys.some(k => k && !k.toLowerCase().includes('your-') && k.length > 20);
+      if (!hasRealKey) {
+        s.enabled = false;
+        console.log(`AI Service ${s.name} disabled: No valid API key detected (found placeholders or empty).`);
+      }
+    });
 
     // Track key index per service for rotation
     this.keyIndices = {};
