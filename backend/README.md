@@ -111,6 +111,12 @@ For production environments, set up a cron job to run this script daily:
 0 2 * * * cd /path/to/edumind-backend && npm run check-subscriptions
 ```
 
+## 📚 Documentation
+
+For detailed information on all available endpoints, request parameters, and response structures, please refer to our:
+- [API Collection & Specifications](./documentation/API_COLLECTION.md)
+- [Postman Guide](./documentation/API_COLLECTION.md#testing-with-postman)
+
 ## 📡 API Endpoints
 
 ### Authentication
