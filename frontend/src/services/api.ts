@@ -797,6 +797,45 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
+// Preferences API
+export const preferenceAPI = {
+  getPreferences: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/preferences`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch preferences');
+    }
+
+    return response.json();
+  },
+
+  updatePreferences: async (preferences: any, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/preferences`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(preferences),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update preferences');
+    }
+
+    return response.json();
+  },
+};
+
+
 export const getAuthToken = () => {
   return localStorage.getItem('edumind_token');
 };
