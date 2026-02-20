@@ -37,8 +37,8 @@ const UserSchema = new mongoose.Schema({
   },
   usageLimit: {
     type: Number,
-    default: function() {
-      switch(this.subscriptionPlan) {
+    default: function () {
+      switch (this.subscriptionPlan) {
         case 'guest': return process.env.GUEST_PLAN_LIMIT || 5;
         case 'free': return process.env.FREE_PLAN_LIMIT || 100;
         case 'student': return process.env.STUDENT_PLAN_LIMIT || 1000;
@@ -186,6 +186,22 @@ const UserSchema = new mongoose.Schema({
       }
     }
   },
+  // Production-Grade Extensions
+  preferences: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Preference'
+  },
+  analytics: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Analytics'
+  },
+  lastLogin: {
+    type: Date
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -193,7 +209,7 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Encrypt password before saving
-UserSchema.pre('save', async function(next) {
+UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
   }
@@ -203,19 +219,19 @@ UserSchema.pre('save', async function(next) {
 });
 
 // Sign JWT and return
-UserSchema.methods.getSignedJwtToken = function() {
+UserSchema.methods.getSignedJwtToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE
   });
 };
 
 // Match user entered password to hashed password in database
-UserSchema.methods.matchPassword = async function(enteredPassword) {
+UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 // Check if user changed password after JWT was issued
-UserSchema.methods.changedPasswordAfter = function(JWTTimeStamp) {
+UserSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
   if (this.passwordChangedAt) {
     const changedTimeStamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
@@ -227,12 +243,12 @@ UserSchema.methods.changedPasswordAfter = function(JWTTimeStamp) {
 };
 
 // Check if user has exceeded usage limit
-UserSchema.methods.hasExceededUsageLimit = function() {
+UserSchema.methods.hasExceededUsageLimit = function () {
   return this.usageCount >= this.usageLimit;
 };
 
 // Reset usage count if needed
-UserSchema.methods.resetUsageIfNeeded = function() {
+UserSchema.methods.resetUsageIfNeeded = function () {
   if (Date.now() >= this.resetUsageAt) {
     // Check if this is a student plan that has expired
     if (this.subscriptionPlan === 'student' && this.studentPlanExpiresAt && Date.now() >= this.studentPlanExpiresAt) {
@@ -240,7 +256,7 @@ UserSchema.methods.resetUsageIfNeeded = function() {
       this.subscriptionPlan = 'free';
       this.usageLimit = process.env.FREE_PLAN_LIMIT || 100;
     }
-    
+
     // Check if this is a Pro plan that hasn't been renewed
     if (this.subscriptionPlan === 'pro') {
       // For Pro plan, we could implement payment checking logic here
@@ -248,7 +264,7 @@ UserSchema.methods.resetUsageIfNeeded = function() {
       this.subscriptionPlan = 'free';
       this.usageLimit = process.env.FREE_PLAN_LIMIT || 100;
     }
-    
+
     this.usageCount = 0;
     this.resetUsageAt = new Date(new Date().setDate(new Date().getDate() + 30));
     return true;
@@ -257,27 +273,27 @@ UserSchema.methods.resetUsageIfNeeded = function() {
 };
 
 // Generate email verification token
-UserSchema.methods.getEmailVerificationToken = function() {
+UserSchema.methods.getEmailVerificationToken = function () {
   // Generate token
   const verificationToken = require('crypto').randomBytes(20).toString('hex');
-  
+
   // Hash token and set to emailVerificationToken field
   this.emailVerificationToken = require('crypto').createHash('sha256').update(verificationToken).digest('hex');
-  
+
   // Set expire time (1 hour)
   this.emailVerificationExpires = Date.now() + 60 * 60 * 1000;
-  
+
   return verificationToken;
 };
 
 // Add achievement to user
-UserSchema.methods.addAchievement = function(achievement) {
+UserSchema.methods.addAchievement = function (achievement) {
   this.achievements.push(achievement);
   return this.save();
 };
 
 // Add activity to user
-UserSchema.methods.addActivity = function(activity) {
+UserSchema.methods.addActivity = function (activity) {
   // Keep only the last 50 activities
   if (this.recentActivity.length >= 50) {
     this.recentActivity.shift();
@@ -287,25 +303,25 @@ UserSchema.methods.addActivity = function(activity) {
 };
 
 // Update study stats
-UserSchema.methods.updateStudyStats = function(subject, hours, sessions = 1) {
+UserSchema.methods.updateStudyStats = function (subject, hours, sessions = 1) {
   this.studyStats.totalHours += hours;
   this.studyStats.totalSessions += sessions;
-  
+
   // Update subject stats
   if (!this.studyStats.subjectStats) {
     this.studyStats.subjectStats = new Map();
   }
-  
+
   const subjectStat = this.studyStats.subjectStats.get(subject) || { hours: 0, sessions: 0 };
   subjectStat.hours += hours;
   subjectStat.sessions += sessions;
   this.studyStats.subjectStats.set(subject, subjectStat);
-  
+
   // Update average productivity (simplified calculation)
   if (this.studyStats.totalSessions > 0) {
     this.studyStats.averageProductivity = Math.min(100, (this.studyStats.totalHours / this.studyStats.totalSessions) * 10);
   }
-  
+
   return this.save();
 };
 

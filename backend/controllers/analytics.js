@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const Analytics = require('../models/Analytics');
 const AIRequest = require('../models/AIRequest');
 const StudyMaterial = require('../models/StudyMaterial');
 
@@ -7,14 +7,21 @@ const StudyMaterial = require('../models/StudyMaterial');
 // @access  Private
 exports.getLearningAnalytics = async (req, res, next) => {
   try {
-    // Get user's AI usage stats
+    // Get pre-aggregated analytics
+    let analytics = await Analytics.findOne({ user: req.user.id });
+
+    if (!analytics) {
+      analytics = await Analytics.create({ user: req.user.id });
+    }
+
+    // Get user's AI usage stats for detailed breakdown
     const aiRequests = await AIRequest.find({ user: req.user.id });
-    
+
     // Calculate stats
     const totalRequests = aiRequests.length;
     const successfulRequests = aiRequests.filter(req => req.success).length;
     const failedRequests = totalRequests - successfulRequests;
-    
+
     // Group by tool
     const toolUsage = {};
     aiRequests.forEach(request => {
@@ -23,13 +30,14 @@ exports.getLearningAnalytics = async (req, res, next) => {
       }
       toolUsage[request.tool]++;
     });
-    
+
     // Get study materials count
     const studyMaterials = await StudyMaterial.countDocuments({ user: req.user.id });
-    
+
     res.status(200).json({
       success: true,
       data: {
+        masterAnalytics: analytics,
         totalRequests,
         successfulRequests,
         failedRequests,
@@ -53,7 +61,7 @@ exports.getProgressReports = async (req, res, next) => {
   try {
     // Get user's AI usage over time
     const aiRequests = await AIRequest.find({ user: req.user.id }).sort({ createdAt: -1 });
-    
+
     // Group by date
     const dailyUsage = {};
     aiRequests.forEach(request => {
@@ -63,10 +71,10 @@ exports.getProgressReports = async (req, res, next) => {
       }
       dailyUsage[date]++;
     });
-    
+
     // Get study materials
     const studyMaterials = await StudyMaterial.find({ user: req.user.id }).sort({ createdAt: -1 });
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -95,15 +103,15 @@ exports.getPerformanceInsights = async (req, res, next) => {
   try {
     // Get user's AI usage stats
     const aiRequests = await AIRequest.find({ user: req.user.id });
-    
+
     // Calculate average processing time
     const totalProcessingTime = aiRequests.reduce((sum, req) => sum + (req.processingTime || 0), 0);
     const averageProcessingTime = aiRequests.length > 0 ? totalProcessingTime / aiRequests.length : 0;
-    
+
     // Calculate average tokens used
     const totalTokens = aiRequests.reduce((sum, req) => sum + (req.tokensUsed || 0), 0);
     const averageTokens = aiRequests.length > 0 ? totalTokens / aiRequests.length : 0;
-    
+
     // Get most used tools
     const toolUsage = {};
     aiRequests.forEach(request => {
@@ -112,9 +120,9 @@ exports.getPerformanceInsights = async (req, res, next) => {
       }
       toolUsage[request.tool]++;
     });
-    
+
     const mostUsedTool = Object.keys(toolUsage).reduce((a, b) => toolUsage[a] > toolUsage[b] ? a : b, '');
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -139,7 +147,7 @@ exports.getLearningPaths = async (req, res, next) => {
   try {
     // Get user's study materials grouped by subject
     const studyMaterials = await StudyMaterial.find({ user: req.user.id });
-    
+
     const subjects = {};
     studyMaterials.forEach(material => {
       if (!subjects[material.subject]) {
@@ -156,7 +164,7 @@ exports.getLearningPaths = async (req, res, next) => {
         createdAt: material.createdAt
       });
     });
-    
+
     res.status(200).json({
       success: true,
       data: subjects

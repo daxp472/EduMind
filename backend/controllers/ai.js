@@ -2,6 +2,8 @@ const axios = require('axios');
 const pdf = require('pdf-parse');
 const User = require('../models/User');
 const AIRequest = require('../models/AIRequest');
+const logActivity = require('../utils/activityLogger');
+const updateAnalytics = require('../utils/analyticsUpdater');
 const aiConfig = require('../config/ai');
 
 // Generic function to call different AI services
@@ -98,37 +100,36 @@ const buildPrompt = (tool, params) => {
 
 // Parse AI text response into structured data
 const parseResponse = (tool, rawText) => {
-  switch (tool) {
-    case 'summarize':
-      return { summary: rawText.trim() };
-    case 'quiz': {
-      try {
-        const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return { questions: JSON.parse(cleaned) };
-      } catch (e) {
-        return { questions: [] };
+  const cleanText = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+  // Non-JSON tools return direct text
+  if (tool === 'summarize') return { summary: cleanText };
+  if (tool === 'tutor') return { answer: cleanText };
+
+  // JSON tools (quiz, flashcards, study-planner) need parsing
+  try {
+    try {
+      const parsed = JSON.parse(cleanText);
+      return tool === 'quiz' ? { questions: parsed } :
+        tool === 'flashcards' ? { flashcards: parsed } :
+          tool === 'study-planner' ? { plan: parsed } : { data: parsed };
+    } catch (e) {
+      // Fallback: Regex extract JSON array or object
+      const jsonMatch = cleanText.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return tool === 'quiz' ? { questions: parsed } :
+          tool === 'flashcards' ? { flashcards: parsed } :
+            tool === 'study-planner' ? { plan: parsed } : { data: parsed };
       }
+      throw e;
     }
-    case 'tutor':
-      return { answer: rawText.trim() };
-    case 'study-planner': {
-      try {
-        const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return { plan: JSON.parse(cleaned) };
-      } catch (e) {
-        return { plan: rawText.trim() };
-      }
-    }
-    case 'flashcards': {
-      try {
-        const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return { flashcards: JSON.parse(cleaned) };
-      } catch (e) {
-        return { flashcards: [] };
-      }
-    }
-    default:
-      return { content: rawText.trim() };
+  } catch (err) {
+    console.error(`Failed to parse AI response for ${tool}:`, err);
+    // Return empty structures instead of crashing for production stability
+    return tool === 'quiz' ? { questions: [] } :
+      tool === 'flashcards' ? { flashcards: [] } :
+        { error: 'Malformed response', content: cleanText };
   }
 };
 
@@ -372,17 +373,16 @@ exports.summarizeText = async (req, res, next) => {
       success: true
     });
 
-    // Track activity for logged-in users
+    // Track activity and analytics for logged-in users
     if (req.user.id !== 'guest') {
-      const user = await User.findById(req.user.id);
-      if (user) {
-        await user.addActivity({
-          type: 'ai_tool_used',
-          title: 'AI Summarizer Used',
-          description: `Summarized ${file ? 'document' : type + ' text'} (${length} length)`,
-          timestamp: Date.now()
-        });
-      }
+      await logActivity(
+        req.user.id,
+        'summary_created',
+        'AI Summary Generated',
+        `Summarized ${file ? 'document' : type + ' text'} (${length} length)`,
+        { type, length, file: file ? file.originalname : null }
+      );
+      await updateAnalytics(req.user.id, 'summarizer');
     }
 
     res.status(200).json({
@@ -441,15 +441,14 @@ exports.generateQuiz = async (req, res, next) => {
     });
 
     if (req.user.id !== 'guest') {
-      const user = await User.findById(req.user.id);
-      if (user) {
-        await user.addActivity({
-          type: 'ai_tool_used',
-          title: 'Quiz Generator Used',
-          description: `Generated ${numQuestions} question quiz (${difficulty} difficulty)`,
-          timestamp: Date.now()
-        });
-      }
+      await logActivity(
+        req.user.id,
+        'quiz_generated',
+        'AI Quiz Generated',
+        `Generated ${numQuestions} question quiz from content`,
+        { numQuestions, difficulty }
+      );
+      await updateAnalytics(req.user.id, 'quiz');
     }
 
     res.status(200).json({
@@ -549,15 +548,14 @@ exports.studyPlanner = async (req, res, next) => {
       success: true
     });
 
-    const user = await User.findById(req.user.id);
-    if (user) {
-      await user.addActivity({
-        type: 'ai_tool_used',
-        title: 'Study Planner Used',
-        description: `Created study plan for: ${Array.isArray(subjects) ? subjects.join(', ') : subjects}`,
-        timestamp: Date.now()
-      });
-    }
+    await logActivity(
+      req.user.id,
+      'study_session_started',
+      'Study Plan Created',
+      `Created study plan for: ${Array.isArray(subjects) ? subjects.join(', ') : subjects}`,
+      { subjects, timeAvailable }
+    );
+    await updateAnalytics(req.user.id, 'study-planner');
 
     res.status(200).json({
       success: true,
@@ -614,15 +612,14 @@ exports.generateFlashcards = async (req, res, next) => {
       success: true
     });
 
-    const user = await User.findById(req.user.id);
-    if (user) {
-      await user.addActivity({
-        type: 'ai_tool_used',
-        title: 'Flashcard Generator Used',
-        description: `Generated ${numCards} flashcards`,
-        timestamp: Date.now()
-      });
-    }
+    await logActivity(
+      req.user.id,
+      'flashcard_created',
+      'AI Flashcards Generated',
+      `Generated ${numCards} flashcards from content`,
+      { numCards }
+    );
+    await updateAnalytics(req.user.id, 'flashcards');
 
     res.status(200).json({
       success: true,

@@ -1,23 +1,19 @@
-const User = require('../models/User');
-const cloudinaryUpload = require('../middleware/cloudinaryUpload');
+const AcademicInfo = require('../models/AcademicInfo');
 
 // @desc    Get academic information
 // @route   GET /api/academic
 // @access  Private
 exports.getAcademicInfo = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+    let info = await AcademicInfo.findOne({ user: req.user.id });
+
+    if (!info) {
+      info = await AcademicInfo.create({ user: req.user.id, institution: 'Unspecified' });
     }
-    
+
     res.status(200).json({
       success: true,
-      data: user.academicInfo || {}
+      data: info
     });
   } catch (err) {
     res.status(500).json({
@@ -32,30 +28,19 @@ exports.getAcademicInfo = async (req, res, next) => {
 // @access  Private
 exports.updateAcademicInfo = async (req, res, next) => {
   try {
-    const { institution, major, degree, year, gpa, location, bio } = req.body;
-    
-    const academicInfo = {};
-    
-    if (institution) academicInfo.institution = institution;
-    if (major) academicInfo.major = major;
-    if (degree) academicInfo.degree = degree;
-    if (year) academicInfo.year = year;
-    if (gpa !== undefined) academicInfo.gpa = gpa;
-    if (location) academicInfo.location = location;
-    if (bio) academicInfo.bio = bio;
-    
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { academicInfo },
+    const info = await AcademicInfo.findOneAndUpdate(
+      { user: req.user.id },
+      req.body,
       {
         new: true,
-        runValidators: true
+        runValidators: true,
+        upsert: true
       }
     );
-    
+
     res.status(200).json({
       success: true,
-      data: user.academicInfo
+      data: info
     });
   } catch (err) {
     // Handle validation errors
@@ -66,7 +51,7 @@ exports.updateAcademicInfo = async (req, res, next) => {
         message: message
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Server error updating academic information'
@@ -86,7 +71,7 @@ exports.updateProfileImage = async (req, res, next) => {
         message: 'Please upload a file'
       });
     }
-    
+
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { avatar: req.file.path },
@@ -95,7 +80,7 @@ exports.updateProfileImage = async (req, res, next) => {
         runValidators: true
       }
     );
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -122,24 +107,24 @@ exports.updateCoverImage = async (req, res, next) => {
         message: 'Please upload a file'
       });
     }
-    
+
     // For now, we'll store the cover image in academicInfo
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
-    
+
     if (!user.academicInfo) {
       user.academicInfo = {};
     }
-    
+
     user.academicInfo.coverImage = req.file.path;
     await user.save();
-    
+
     res.status(200).json({
       success: true,
       data: {

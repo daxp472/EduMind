@@ -1,4 +1,8 @@
 const User = require('../models/User');
+const Preference = require('../models/Preference');
+const Analytics = require('../models/Analytics');
+const AcademicInfo = require('../models/AcademicInfo');
+const logActivity = require('../utils/activityLogger');
 const crypto = require('crypto');
 const sendEmail = require('../utils/email');
 
@@ -27,6 +31,16 @@ exports.register = async (req, res, next) => {
       email,
       password
     });
+
+    // Initialize production-grade structures
+    const preferences = await Preference.create({ user: user._id });
+    const analytics = await Analytics.create({ user: user._id });
+    const academicInfo = await AcademicInfo.create({ user: user._id, institution: 'Unspecified' });
+
+    // Link them to user
+    user.preferences = preferences._id;
+    user.analytics = analytics._id;
+    await user.save({ validateBeforeSave: false });
 
     // Generate email verification token
     const verificationToken = user.getEmailVerificationToken();
@@ -133,15 +147,17 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Add login activity
-    const activity = {
-      type: 'login',
-      title: 'User Login',
-      description: 'User successfully logged in',
-      timestamp: Date.now()
-    };
+    // Update last login
+    user.lastLogin = Date.now();
+    await user.save({ validateBeforeSave: false });
 
-    await user.addActivity(activity);
+    // Add login activity using new utility
+    await logActivity(
+      user._id,
+      'login',
+      'User Login',
+      'User successfully logged in'
+    );
 
     sendTokenResponse(user, 200, res);
   } catch (err) {
