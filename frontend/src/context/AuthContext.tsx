@@ -18,6 +18,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -36,17 +37,19 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setTokenState] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check for stored user data
     const storedUser = localStorage.getItem('edumind_user');
     const token = getAuthToken();
-    
+
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
+      setTokenState(token);
       setAuthToken(token);
-      
+
       // Fetch fresh user data
       authAPI.getCurrentUser(token)
         .then(response => {
@@ -67,18 +70,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response = await authAPI.login({ email, password });
-      
+
       // Check if email is verified
       if (!response.data.emailVerified) {
         throw new Error('Please verify your email before logging in. Check your inbox for the verification email.');
       }
-      
+
       setUser(response.data);
+      setTokenState(response.token);
       setAuthToken(response.token);
-      
+
       localStorage.setItem('edumind_user', JSON.stringify(response.data));
       localStorage.setItem('edumind_token', response.token);
-      
+
       setIsLoading(false);
     } catch (error: unknown) {
       setIsLoading(false);
@@ -94,11 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const response = await authAPI.register({ name, email, password });
-      
+
       // For signup, we don't automatically log in the user
       // Instead, we show a message that they need to verify their email
       setIsLoading(false);
-      
+
       // Return the response so the component can handle the UI
       return response;
     } catch (error: unknown) {
@@ -113,13 +117,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    setTokenState(null);
     setAuthToken(null);
     localStorage.removeItem('edumind_user');
     localStorage.removeItem('edumind_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, signup, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

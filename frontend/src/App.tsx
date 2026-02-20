@@ -305,35 +305,39 @@ function AnimatedRoutes() {
   );
 }
 
+import { PreferenceProvider } from './context/PreferenceContext';
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <ScrollProgress />
-        <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
-          <Navbar />
-          <main>
-            <AnimatedRoutes />
-          </main>
-          <Footer />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              duration: 4000,
-              className: 'premium-toast',
-              style: {
-                background: '#0a0a0a',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.05)',
-                borderRadius: '1rem',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-              },
-            }}
-          />
-        </div>
-      </Router>
+      <PreferenceProvider>
+        <Router>
+          <ScrollToTop />
+          <ScrollProgress />
+          <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
+            <Navbar />
+            <main>
+              <AnimatedRoutes />
+            </main>
+            <Footer />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                duration: 4000,
+                className: 'premium-toast',
+                style: {
+                  background: '#0a0a0a',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '1rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                },
+              }}
+            />
+          </div>
+        </Router>
+      </PreferenceProvider>
     </AuthProvider>
   );
 }
