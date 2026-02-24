@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   static const String appName = 'EduMind';
-  static const String apiBaseUrl = 'http://10.93.27.222:5000/api'; // For Android Emulator
-  // static const String apiBaseUrl = 'http://localhost:5000/api'; // For iOS/Desktop
+  // static const String apiBaseUrl = 'https://api.edumind.com/api'; // Production
+  static const String apiBaseUrl = 'http://10.93.27.222:5000/api'; // Development
+  // static const String apiBaseUrl = 'http://localhost:5000/api'; // iOS Simulator
   
   // Design Tokens
   static const Color primaryColor = Color(0xFF6366F1); // Indigo 500
