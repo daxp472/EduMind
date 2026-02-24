@@ -11,7 +11,8 @@
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "test:auth": "cross-env NODE_ENV=test jest tests/auth.test.js",
     "test:ai": "cross-env NODE_ENV=test jest tests/ai.test.js",
-    "test:preferences": "cross-env NODE_ENV=test jest tests/preferences.test.js"
+    "test:preferences": "cross-env NODE_ENV=test jest tests/preferences.test.js",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage"
   },
   "keywords": [],
   "author": "",
