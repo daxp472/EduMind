@@ -50,6 +50,13 @@ EduMind is a next-generation learning platform that leverages artificial intelli
 - **Performance Insights** - Identify strengths and weaknesses
 - **Learning Paths** - Visualize educational progression
 
+### Mobile App
+- [Flutter](https://flutter.dev/) for cross-platform mobile development
+- [Provider](https://pub.dev/packages/provider) for state management
+- [Dio](https://pub.dev/packages/dio) for networking
+- [Lucide Icons](https://pub.dev/packages/lucide_icons) for iconography
+- [Flutter Animate](https://pub.dev/packages/flutter_animate) for premium UI transitions
+
 ## 🚀 Tech Stack
 
 ### Frontend
@@ -72,6 +79,14 @@ EduMind is a next-generation learning platform that leverages artificial intelli
 
 ```
 project/
+├── App/                          # Flutter Mobile Application
+│   ├── lib/
+│   │   ├── core/           # Theme, constants, API services
+│   │   ├── models/          # Data models
+│   │   ├── providers/       # State management
+│   │   ├── screens/         # UI Screen components
+│   │   └── widgets/         # Reusable UI widgets
+│   └── ...
 ├── backend/                      # Backend API (Node.js + Express)
 │   ├── controllers/         # Request handlers
 │   ├── models/              # Database models
@@ -80,18 +95,14 @@ project/
 │   ├── config/              # Configuration files
 │   ├── utils/               # Utility functions
 │   └── server.js            # Entry point
-├── frontend/                     # Frontend source code (React)
-│   ├── src/                 # Frontend source code (React)
-│   |   ├── components/          # Reusable UI components
-│   |   ├── context/             # React context providers
-│   |   ├── pages/               # Page components
-│   |   ├── services/            # API service layer
-│   |   ├── types/               # TypeScript types
-│   |   ├── App.tsx              # Main app component
-│   |   └── main.tsx             # Entry point
-│   ├── index.html           # HTML template for React app
-│   ├── .env                 # Environment variables   
-|   └── package.json         # Project dependencies
+├── frontend/                     # Web Frontend (React + Vite)
+│   ├── src/                 # Frontend source code
+│   │   ├── components/      # Reusable UI components
+│   │   ├── context/         # React context providers
+│   │   ├── pages/           # Page components
+│   │   ├── services/        # API service layer
+│   │   └── ...
+│   └── ...
 └── 
 ```
 
