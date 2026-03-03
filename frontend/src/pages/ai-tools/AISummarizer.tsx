@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText, Upload, Sparkles, Copy, Download, Check,
   Target, BookOpen, Clock, Trash2, ChevronRight, AlertCircle,
-  FileSearch, Layout, Presentation
+  FileSearch, Layout, Presentation, Youtube
 } from 'lucide-react';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -22,6 +22,8 @@ const AISummarizer = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [summarizeSource, setSummarizeSource] = useState<'text' | 'youtube'>('text');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
 
   useEffect(() => {
     fetchHistory();
@@ -44,8 +46,6 @@ const AISummarizer = () => {
   };
 
   const handleGenerateSummary = async () => {
-    if (!inputText.trim() && !file) return;
-
     setIsGenerating(true);
     setSummary('');
     setAiService('');
@@ -54,7 +54,22 @@ const AISummarizer = () => {
       const token = localStorage.getItem('edumind_token') || '';
       let response;
 
-      if (file) {
+      if (summarizeSource === 'youtube') {
+        if (!youtubeUrl.trim()) {
+          toast.error('Please enter a YouTube URL');
+          setIsGenerating(false);
+          return;
+        }
+        response = await aiAPI.summarizeText(
+          {
+            summarizeType: 'YOUTUBE_VIDEO',
+            youtubeUrl,
+            type: summaryType,
+            length: summaryLength
+          },
+          token
+        );
+      } else if (file) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('type', summaryType);
@@ -62,6 +77,11 @@ const AISummarizer = () => {
         if (inputText.trim()) formData.append('text', inputText);
         response = await aiAPI.summarizeText(formData, token);
       } else {
+        if (!inputText.trim()) {
+          toast.error('Please enter some text or upload a file');
+          setIsGenerating(false);
+          return;
+        }
         response = await aiAPI.summarizeText(
           { text: inputText, type: summaryType, length: summaryLength },
           token
@@ -73,9 +93,8 @@ const AISummarizer = () => {
       toast.success('Summary generated!');
       fetchHistory(); // Refresh history
     } catch (error: any) {
-      const isQuotaError = error.message.includes('429') || error.message.includes('Quota');
-      if (isQuotaError) {
-        toast.error('API Quota Reached. Please wait or upgrade.');
+      if (error.message.includes('QUOTA_EXCEEDED')) {
+        toast.error(error.message.replace('QUOTA_EXCEEDED: ', ''));
       } else {
         toast.error(error.message || 'Failed to generate summary');
       }
@@ -85,6 +104,7 @@ const AISummarizer = () => {
   };
 
   const handleCopySummary = () => {
+    if (!summary) return;
     navigator.clipboard.writeText(summary);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -92,6 +112,7 @@ const AISummarizer = () => {
   };
 
   const handleDownloadSummary = () => {
+    if (!summary) return;
     const element = document.createElement('a');
     const file = new Blob([summary], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
@@ -172,13 +193,59 @@ const AISummarizer = () => {
             </div>
 
             <div className="space-y-6 relative z-10">
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                rows={10}
-                className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium placeholder:text-zinc-700 resize-none text-sm leading-relaxed"
-                placeholder="Paste documentation, research papers, or project briefs here..."
-              />
+              {/* Source Toggle */}
+              <div className="flex p-1 bg-black/40 border border-white/5 rounded-2xl">
+                <button
+                  onClick={() => setSummarizeSource('text')}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${summarizeSource === 'text'
+                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  Documentation
+                </button>
+                <button
+                  onClick={() => setSummarizeSource('youtube')}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${summarizeSource === 'youtube'
+                      ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  YouTube Video
+                </button>
+              </div>
+
+              {summarizeSource === 'text' ? (
+                <textarea
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  rows={10}
+                  className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium placeholder:text-zinc-700 resize-none text-sm leading-relaxed"
+                  placeholder="Paste documentation, research papers, or project briefs here..."
+                />
+              ) : (
+                <div className="space-y-4 py-4">
+                  <div className="relative group/input">
+                    <Youtube className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
+                    <input
+                      type="text"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      placeholder="Paste YouTube Video URL (e.g., https://youtube.com/watch?v=...)"
+                      className="w-full bg-black/40 border-2 border-white/5 rounded-2xl pl-16 pr-6 py-5 text-zinc-300 focus:outline-none focus:border-indigo-500/50 transition-all font-bold placeholder:text-zinc-700 text-sm"
+                    />
+                  </div>
+                  <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2 flex items-center">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Neural Extraction Active
+                    </p>
+                    <p className="text-zinc-500 text-xs leading-relaxed font-medium">
+                      Our system will automatically extract the video transcript, process chronological insights, and generate a high-fidelity summary.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -212,27 +279,29 @@ const AISummarizer = () => {
                 </div>
               </div>
 
-              <div className="relative">
-                <input
-                  type="file"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                  accept=".txt,.pdf,.doc,.docx,image/*"
-                />
-                <div className={`flex items-center justify-center px-6 py-10 border-2 border-dashed rounded-[20px] transition-all group/upload ${file ? 'border-indigo-500/50 bg-indigo-500/5' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}>
-                  <div className="text-center">
-                    <Upload className={`h-10 w-10 mx-auto mb-4 transition-colors ${file ? 'text-indigo-500' : 'text-zinc-600 group-hover/upload:text-indigo-500'}`} />
-                    <span className={`block font-bold text-sm ${file ? 'text-indigo-400' : 'text-zinc-500'}`}>
-                      {file ? file.name : 'Drop intelligence packet here'}
-                    </span>
-                    <span className="text-[10px] text-zinc-600 mt-2 block tracking-[0.2em] uppercase font-black">PDF / DOCX / JPG</span>
+              {summarizeSource === 'text' && (
+                <div className="relative">
+                  <input
+                    type="file"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    accept=".txt,.pdf,.doc,.docx,image/*"
+                  />
+                  <div className={`flex items-center justify-center px-6 py-10 border-2 border-dashed rounded-[20px] transition-all group/upload ${file ? 'border-indigo-500/50 bg-indigo-500/5' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}>
+                    <div className="text-center">
+                      <Upload className={`h-10 w-10 mx-auto mb-4 transition-colors ${file ? 'text-indigo-500' : 'text-zinc-600 group-hover/upload:text-indigo-500'}`} />
+                      <span className={`block font-bold text-sm ${file ? 'text-indigo-400' : 'text-zinc-500'}`}>
+                        {file ? file.name : 'Drop intelligence packet here'}
+                      </span>
+                      <span className="text-[10px] text-zinc-600 mt-2 block tracking-[0.2em] uppercase font-black">PDF / DOCX / JPG</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <button
                 onClick={handleGenerateSummary}
-                disabled={isGenerating || (!inputText.trim() && !file)}
+                disabled={isGenerating || (summarizeSource === 'text' && !inputText.trim() && !file) || (summarizeSource === 'youtube' && !youtubeUrl.trim())}
                 className="w-full relative group/btn overflow-hidden rounded-2xl h-16"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 animate-gradient-x" />
@@ -480,29 +549,29 @@ const AISummarizer = () => {
       </div>
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(99, 102, 241, 0.2);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(99, 102, 241, 0.4);
-        }
-        @keyframes gradient-x {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s linear infinite;
-        }
-      `}</style>
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.4);
+          }
+          @keyframes gradient-x {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradient-x 3s linear infinite;
+          }
+        `}</style>
     </div>
   );
 };

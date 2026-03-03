@@ -4,6 +4,7 @@ import { CreditCard, Brain, RotateCcw, Eye, EyeOff, Download, Shuffle, Sparkles 
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
+import SummarySelector from '../../components/ai/SummarySelector';
 
 interface Flashcard {
   id: number;
@@ -81,6 +82,11 @@ const FlashcardGenerator = () => {
     toast.success('Cards shuffled!');
   };
 
+  const handleSummarySelect = (selectedContent: string) => {
+    setTopic(selectedContent);
+    toast.success('Neural summary injected into Buffer parameters');
+  };
+
   const resetStudy = () => {
     setStudyMode(false);
     setFlashcards([]);
@@ -125,10 +131,13 @@ const FlashcardGenerator = () => {
             <div className="bg-zinc-900/50 backdrop-blur-xl rounded-3xl p-10 border border-white/5 relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <h2 className="text-2xl font-bold mb-8 flex items-center text-white">
-                <Brain className="h-6 w-6 mr-3 text-purple-500" />
-                Buffer Parameters
-              </h2>
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <h2 className="text-2xl font-bold flex items-center text-white">
+                  <Brain className="h-6 w-6 mr-3 text-purple-500" />
+                  Buffer Parameters
+                </h2>
+                <SummarySelector onSelect={handleSummarySelect} />
+              </div>
 
               <div className="space-y-8 relative z-10">
                 <div>

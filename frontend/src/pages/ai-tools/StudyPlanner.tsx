@@ -4,6 +4,7 @@ import { Calendar, Clock, Target, Brain, Plus, CircleCheck as CheckCircle, Trend
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
+import SummarySelector from '../../components/ai/SummarySelector';
 
 interface Goal {
   id: number;
@@ -128,6 +129,11 @@ const StudyPlanner = () => {
     } finally {
       setIsGeneratingPlan(false);
     }
+  };
+
+  const handleSummarySelect = (selectedContent: string) => {
+    setPlanForm(prev => ({ ...prev, subjects: selectedContent.slice(0, 50) + '...', goals: `Detailed study based on: ${selectedContent.slice(0, 100)}...` }));
+    toast.success('Neural summary injected into Strategy Engine');
   };
 
   const toggleTaskComplete = (taskId: number) => {
@@ -467,14 +473,17 @@ const StudyPlanner = () => {
             <div className="bg-zinc-900/50 backdrop-blur-xl rounded-[40px] p-8 border border-white/5 relative overflow-hidden group">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all pointer-events-none" />
 
-              <div className="flex items-center space-x-3 mb-8">
-                <div className="p-2 bg-purple-500 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-500 rounded-lg">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold uppercase tracking-tighter italic">Schedule <span className="text-purple-500">Synth</span></h3>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Neural Resource Optimization</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold uppercase tracking-tighter italic">Schedule <span className="text-purple-500">Synth</span></h3>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Neural Resource Optimization</p>
-                </div>
+                <SummarySelector onSelect={handleSummarySelect} />
               </div>
 
               <div className="space-y-6 relative z-10">
@@ -567,40 +576,48 @@ const StudyPlanner = () => {
             </div>
 
             {/* Today's Schedule */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
-              <div className="space-y-3">
-                {schedule.map((task) => (
+            <div className="bg-zinc-900/50 backdrop-blur-xl rounded-[40px] p-8 border border-white/5 relative overflow-hidden group">
+              <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tighter italic">Today's <span className="text-indigo-500">Protocol</span></h3>
+              <div className="space-y-4">
+                {schedule.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <Calendar className="h-12 w-12 text-zinc-800 mx-auto mb-4" />
+                    <p className="text-xs font-black uppercase tracking-widest text-zinc-600">No active cycles detected</p>
+                  </div>
+                ) : schedule.map((task) => (
                   <div
                     key={task.id}
-                    className={`p-4 rounded-xl border-2 transition-colors ${task.completed
-                      ? 'border-green-200 bg-green-50'
-                      : 'border-gray-200 hover:border-blue-300'
+                    className={`p-5 rounded-2xl border transition-all ${task.completed
+                      ? 'border-green-500/20 bg-green-500/5'
+                      : 'border-white/5 bg-black/20 hover:border-white/10'
                       }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3">
+                      <div className="flex items-start space-x-4">
                         <button
                           onClick={() => toggleTaskComplete(task.id)}
-                          className={`mt-1 p-1 rounded-full ${task.completed
-                            ? 'text-green-600'
-                            : 'text-gray-400 hover:text-green-600'
+                          className={`mt-1 p-1 rounded-lg transition-colors ${task.completed
+                            ? 'bg-green-500 text-white'
+                            : 'bg-zinc-800 text-zinc-500 hover:text-white'
                             }`}
                         >
-                          <CheckCircle className="h-5 w-5" />
+                          <CheckCircle className="h-4 w-4" />
                         </button>
                         <div>
-                          <h4 className={`font-medium ${task.completed ? 'text-green-800 line-through' : 'text-gray-900'
+                          <h4 className={`text-sm font-bold uppercase tracking-tight ${task.completed ? 'text-zinc-500 line-through italic' : 'text-white'
                             }`}>
                             {task.title}
                           </h4>
-                          <p className="text-sm text-gray-600">{task.subject}</p>
-                          <p className="text-sm text-gray-500">{task.time}</p>
+                          <div className="flex items-center mt-1 space-x-3">
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{task.subject}</p>
+                            <span className="text-zinc-800">•</span>
+                            <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest">{task.time}</p>
+                          </div>
                         </div>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${task.type === 'study' ? 'bg-blue-100 text-blue-800' :
-                        task.type === 'practice' ? 'bg-purple-100 text-purple-800' :
-                          'bg-orange-100 text-orange-800'
+                      <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-lg border ${task.type === 'study' ? 'border-indigo-500/20 bg-indigo-500/10 text-indigo-500' :
+                        task.type === 'practice' ? 'border-purple-500/20 bg-purple-500/10 text-purple-500' :
+                          'border-orange-500/20 bg-orange-500/10 text-orange-500'
                         }`}>
                         {task.type}
                       </span>
@@ -611,12 +628,15 @@ const StudyPlanner = () => {
             </div>
 
             {/* Study Tips */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
-              <div className="flex items-center space-x-3 mb-4">
-                <Brain className="h-6 w-6" />
-                <h3 className="text-lg font-semibold">AI Study Tip</h3>
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                <Brain className="h-20 w-20" />
               </div>
-              <p className="text-blue-100">
+              <div className="flex items-center space-x-3 mb-4 relative z-10">
+                <Brain className="h-6 w-6" />
+                <h3 className="text-sm font-black uppercase tracking-widest">Neural Insights</h3>
+              </div>
+              <p className="text-white/80 text-sm font-medium leading-relaxed relative z-10">
                 Based on your learning patterns, you're most productive between 9-11 AM.
                 Schedule your most challenging topics during this time for better retention.
               </p>

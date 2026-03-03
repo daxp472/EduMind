@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import SummarySelector from '../../components/ai/SummarySelector';
 
 interface Question {
   id: number;
@@ -24,7 +25,6 @@ interface Quiz {
 
 const QuizGenerator = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [topic, setTopic] = useState(location.state?.initialText || '');
   const [difficulty, setDifficulty] = useState('medium');
   const [questionCount, setQuestionCount] = useState(10);
@@ -138,6 +138,11 @@ const QuizGenerator = () => {
     generateQuiz();
   };
 
+  const handleSummarySelect = (selectedContent: string) => {
+    setTopic(selectedContent);
+    toast.success('Neural summary injected into Forge parameters');
+  };
+
   const selectFromHistory = (item: any) => {
     try {
       const questions = JSON.parse(item.output);
@@ -202,10 +207,13 @@ const QuizGenerator = () => {
             <div className="bg-zinc-900/50 backdrop-blur-3xl rounded-[32px] p-10 border border-white/5 relative overflow-hidden group shadow-2xl shadow-indigo-500/5">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <h2 className="text-2xl font-bold mb-8 flex items-center italic relative z-10">
-                <Brain className="h-6 w-6 mr-3 text-indigo-500" />
-                Forge Parameters
-              </h2>
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <h2 className="text-2xl font-bold flex items-center italic">
+                  <Brain className="h-6 w-6 mr-3 text-indigo-500" />
+                  Forge Parameters
+                </h2>
+                <SummarySelector onSelect={handleSummarySelect} />
+              </div>
 
               <div className="space-y-8 relative z-10">
                 <div>
