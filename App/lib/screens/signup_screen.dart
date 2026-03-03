@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../core/constants.dart';
-import '../widgets/custom_textfield.dart';
+import '../../core/app_colors.dart';
+import '../../widgets/premium_button.dart';
+import '../../widgets/custom_textfield.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -28,12 +30,28 @@ class _SignupScreenState extends State<SignupScreen> {
       
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created! Please verify your email.')),
+          SnackBar(
+            backgroundColor: AppColors.success.withOpacity(0.9),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: const Text(
+              'NEURAL PROFILE ESTABLISHED. VERIFICATION REQUIRED.',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.0),
+            ),
+          ),
         );
-        Navigator.pop(context); // Go back to login/landing
+        Navigator.pop(context);
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.read<AuthProvider>().error ?? 'Signup failed')),
+          SnackBar(
+            backgroundColor: const Color(0xFFF43F5E).withOpacity(0.9),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Text(
+              context.read<AuthProvider>().error?.toUpperCase() ?? 'PROFILE CREATION REJECTED',
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.0),
+            ),
+          ),
         );
       }
     }
@@ -42,6 +60,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -51,59 +70,79 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        physics: const BouncingScrollPhysics(),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'CREATE\nACCOUNT',
+                'INITIALIZE\nPROFILE',
                 style: TextStyle(
-                  fontSize: 40,
+                  fontSize: 48,
                   fontWeight: FontWeight.w900,
-                  fontStyle: FontStyle.italic,
+                  letterSpacing: -1.0,
+                  color: Colors.white,
                   height: 1.0,
                 ),
-              ),
-              const SizedBox(height: 8),
+              ).animate().fadeIn().slideX(begin: -0.1),
+              const SizedBox(height: 12),
               const Text(
-                'Join EduMind and start learning.',
-                style: TextStyle(color: Colors.white54, fontSize: 16),
-              ),
-              const SizedBox(height: 40),
+                'Register your identity in the knowledge network.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w500),
+              ).animate().fadeIn(delay: 200.ms),
+              const SizedBox(height: 48),
               CustomTextField(
                 controller: _nameController,
-                label: 'FULL NAME',
+                label: 'FULL LEGAL NAME',
                 prefixIcon: LucideIcons.user,
                 validator: (v) => v!.isEmpty ? 'Name required' : null,
-              ),
+              ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1),
               const SizedBox(height: 24),
               CustomTextField(
                 controller: _emailController,
-                label: 'EMAIL',
+                label: 'COMMUNICATION UPLINK (EMAIL)',
                 prefixIcon: LucideIcons.mail,
                 validator: (v) => v!.isEmpty ? 'Email required' : null,
-              ),
+              ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
               const SizedBox(height: 24),
               CustomTextField(
                 controller: _passwordController,
-                label: 'PASSWORD',
+                label: 'SECURITY KEY (PASSWORD)',
                 prefixIcon: LucideIcons.lock,
                 isPassword: true,
-                validator: (v) => v!.length < 6 ? 'Min 6 characters' : null,
-              ),
-              const SizedBox(height: 40),
+                validator: (v) => v!.length < 6 ? 'Min 6 characters required' : null,
+              ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1),
+              const SizedBox(height: 64),
               Consumer<AuthProvider>(
                 builder: (context, auth, _) {
-                  return ElevatedButton(
-                    onPressed: auth.isLoading ? null : _handleSignup,
-                    child: auth.isLoading 
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('SIGN UP'),
+                  return PremiumButton(
+                    text: 'ESTABLISH PROFILE',
+                    isLoading: auth.isLoading,
+                    onPressed: auth.isLoading ? () {} : _handleSignup,
                   );
                 },
-              ),
+              ).animate().fadeIn(delay: 800.ms).scale(begin: const Offset(0.9, 0.9)),
+              const SizedBox(height: 32),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: RichText(
+                    text: const TextSpan(
+                      text: "ALREADY SYNCHRONIZED? ",
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0),
+                      children: [
+                        TextSpan(
+                          text: "ACCESS VAULT",
+                          style: TextStyle(color: AppColors.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 1000.ms),
+              const SizedBox(height: 40),
             ],
           ),
         ),
