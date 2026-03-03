@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/constants.dart';
+import '../../core/app_colors.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class NoteEditorScreen extends StatefulWidget {
   final String? noteId;
@@ -19,28 +21,32 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   void initState() {
     super.initState();
     if (widget.noteId != null) {
-      // Load note if editing
-      _titleController.text = 'Biology Study Session';
-      _contentController.text = 'Focus on the cellular respiration process tonight...';
+      _titleController.text = 'QUANTUM BIOLOGY STUDY';
+      _contentController.text = 'Focus on the cellular respiration protocols and high-density energy transfer mechanisms...';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(widget.noteId == null ? 'New Note' : 'Edit Note'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          widget.noteId == null ? 'NEW LOG' : 'EDIT LOG',
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 2.0),
+        ),
+        centerTitle: true,
         actions: [
-          if (true) // Check if user has student plan
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Tooltip(
-                message: 'Available Offline',
-                child: Icon(LucideIcons.cloudOff, color: AppConstants.primaryColor, size: 20),
-              ),
-            ),
           IconButton(
-            icon: _isSaving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(LucideIcons.check),
+            icon: _isSaving
+                ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                : const Icon(LucideIcons.check, color: AppColors.primary, size: 20),
             onPressed: () {
               setState(() => _isSaving = true);
               Future.delayed(const Duration(seconds: 1), () {
@@ -48,46 +54,83 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               });
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [
-          TextField(
-            controller: _titleController,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            decoration: const InputDecoration(
-              hintText: 'Title',
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(AppConstants.defaultPadding),
-            ),
-          ),
-          const Divider(height: 1, color: Colors.white10),
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: TextField(
-              controller: _contentController,
-              maxLines: null,
-              style: const TextStyle(height: 1.6, fontSize: 16),
-              decoration: const InputDecoration(
-                hintText: 'Start writing...',
+              controller: _titleController,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5),
+              decoration: InputDecoration(
+                hintText: 'IDENTIFIER',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.1)),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.all(AppConstants.defaultPadding),
+                contentPadding: EdgeInsets.zero,
               ),
             ),
+          ).animate().fadeIn().slideX(begin: -0.1),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Divider(color: Colors.white10),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: TextField(
+                controller: _contentController,
+                maxLines: null,
+                style: const TextStyle(height: 1.8, fontSize: 15, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                decoration: InputDecoration(
+                  hintText: 'Initialize knowledge stream...',
+                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.05)),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+              ),
+            ).animate().fadeIn(delay: 200.ms),
           ),
         ],
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(12),
-        color: AppConstants.surfaceColor,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        ),
         child: Row(
           children: [
-            IconButton(icon: const Icon(LucideIcons.type, size: 20), onPressed: () {}),
-            IconButton(icon: const Icon(LucideIcons.list, size: 20), onPressed: () {}),
-            IconButton(icon: const Icon(LucideIcons.image, size: 20), onPressed: () {}),
-            IconButton(icon: const Icon(LucideIcons.mic, size: 20), onPressed: () {}),
+            _buildEditorTool(LucideIcons.type),
+            _buildEditorTool(LucideIcons.list),
+            _buildEditorTool(LucideIcons.image),
+            _buildEditorTool(LucideIcons.mic),
             const Spacer(),
-            const Text('Last saved 5m ago', style: TextStyle(color: Colors.white24, fontSize: 10)),
+            const Text(
+              'SYNCED 5M AGO',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditorTool(IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: IconButton(
+        icon: Icon(icon, size: 20, color: AppColors.textSecondary),
+        onPressed: () {},
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.white.withOpacity(0.03),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );
