@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, MessageCircle, Video, FileText, Headphones, Mail, Phone, Clock, CircleCheck as CheckCircle, ArrowRight, Play, Sparkles, Zap, Search as SearchIcon } from 'lucide-react';
 
 const Help = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const helpCategories = [
     {
@@ -336,7 +338,10 @@ const Help = () => {
                   <Clock size={12} className="text-indigo-500" />
                   <span>{option.response}</span>
                 </div>
-                <button className="w-full py-4 px-6 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all active:scale-95 shadow-xl">
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="w-full py-4 px-6 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all active:scale-95 shadow-xl"
+                >
                   {option.action}
                 </button>
               </motion.div>

@@ -17,15 +17,21 @@ import {
   Sun
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { authAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 import { usePreferences } from '../context/PreferenceContext';
 
 const Settings = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser, token } = useAuth();
   const { preferences, updatePreferences, loading } = usePreferences();
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState(user?.name || '');
+  const [bio, setBio] = useState('Passionate learner exploring AI-enhanced education.');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   if (loading) {
     return (
@@ -53,8 +59,36 @@ const Settings = () => {
     });
   };
 
-  const handleSave = () => {
-    toast.success('Settings saved successfully!');
+  const handleSave = async () => {
+    try {
+      setUpdating(true);
+      await updateUser({ name });
+      // Note: bio is currently not in the User type, but we could add it or handle it separately
+      toast.success('Settings saved successfully!');
+    } catch (err) {
+      toast.error('Failed to save settings');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!token) return;
+    if (!currentPassword || !newPassword) {
+      toast.error('Please enter both current and new passwords');
+      return;
+    }
+    try {
+      setUpdating(true);
+      await authAPI.updatePassword({ currentPassword, newPassword }, token);
+      toast.success('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update password');
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleExportData = () => {
@@ -130,7 +164,8 @@ const Settings = () => {
                         </label>
                         <input
                           type="text"
-                          defaultValue={user?.name || ''}
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
                           className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
                         />
                       </div>
@@ -153,41 +188,69 @@ const Settings = () => {
                       </label>
                       <textarea
                         rows={3}
-                        defaultValue="Passionate learner exploring AI-enhanced education."
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
                         className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Change Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Enter new password"
-                          className="w-full px-3 py-2 pr-10 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
-                        />
+                    <div className="pt-4 border-t border-white/5">
+                      <h3 className="text-lg font-medium text-white mb-4">Security</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">
+                            Current Password
+                          </label>
+                          <input
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="Enter current password"
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">
+                            New Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Enter new password"
+                              className="w-full px-3 py-2 pr-10 bg-white/5 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5 text-gray-500" />
+                              ) : (
+                                <Eye className="h-5 w-5 text-gray-500" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
                         <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          onClick={handlePasswordChange}
+                          disabled={updating}
+                          className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-medium"
                         >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5 text-gray-500" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-gray-500" />
-                          )}
+                          Update Password
                         </button>
                       </div>
                     </div>
 
                     <button
                       onClick={handleSave}
-                      className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                      disabled={updating}
+                      className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
                     >
                       <Save className="h-5 w-5" />
-                      <span>Save Changes</span>
+                      <span>{updating ? 'Saving...' : 'Save Profile Changes'}</span>
                     </button>
                   </div>
                 </div>

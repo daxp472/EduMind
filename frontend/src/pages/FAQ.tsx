@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Search, Circle as HelpCircle, BookOpen, Settings, CreditCard, Shield } from 'lucide-react';
 
 const FAQ = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [openItems, setOpenItems] = useState<number[]>([]);
+  const navigate = useNavigate();
 
   const categories = [
     { id: 'all', name: 'All Questions', icon: HelpCircle },
@@ -109,8 +111,8 @@ const FAQ = () => {
   ];
 
   const toggleItem = (id: number) => {
-    setOpenItems(prev => 
-      prev.includes(id) 
+    setOpenItems(prev =>
+      prev.includes(id)
         ? prev.filter(item => item !== id)
         : [...prev, id]
     );
@@ -119,42 +121,44 @@ const FAQ = () => {
   const filteredFAQs = faqs.filter(faq => {
     const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory;
     const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+      faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-indigo-500/30">
       {/* Hero Section */}
-      <section className="pt-20 pb-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="pt-32 pb-20 overflow-hidden relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-indigo-600/10 blur-[120px] rounded-full" />
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Frequently Asked{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tight">
+              Frequently Asked <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
                 Questions
               </span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Find quick answers to common questions about EduMind's features, 
+            <p className="text-xl text-zinc-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+              Find quick answers to common questions about EduMind's features,
               pricing, and how our AI-powered learning platform works.
             </p>
 
             {/* Search Bar */}
-            <div className="relative max-w-lg mx-auto">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+            <div className="relative max-w-2xl mx-auto group">
+              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                <Search size={20} className="text-indigo-400 group-focus-within:text-white transition-colors" />
               </div>
               <input
                 type="text"
                 placeholder="Search for answers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-4 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-lg"
+                className="block w-full pl-14 pr-6 py-6 bg-white/[0.03] border border-white/10 rounded-3xl text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 backdrop-blur-xl transition-all text-lg font-black uppercase tracking-tight"
               />
             </div>
           </motion.div>
@@ -172,21 +176,20 @@ const FAQ = () => {
               transition={{ duration: 0.6 }}
               className="lg:col-span-1"
             >
-              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 sticky top-24">
+                <h3 className="text-lg font-black text-white mb-6 uppercase tracking-tight">Categories</h3>
                 <div className="space-y-2">
                   {categories.map((category) => (
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all ${
-                        selectedCategory === category.id
-                          ? 'bg-blue-100 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all ${selectedCategory === category.id
+                        ? 'bg-indigo-600 text-white font-bold'
+                        : 'text-zinc-500 hover:bg-white/5 hover:text-white'
+                        }`}
                     >
                       <category.icon className="h-5 w-5" />
-                      <span>{category.name}</span>
+                      <span className="text-sm uppercase tracking-wider font-bold">{category.name}</span>
                     </button>
                   ))}
                 </div>
@@ -200,9 +203,9 @@ const FAQ = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                <div className="bg-white rounded-2xl shadow-lg">
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden">
                   {filteredFAQs.length > 0 ? (
-                    <div className="divide-y divide-gray-200">
+                    <div className="divide-y divide-white/5">
                       {filteredFAQs.map((faq, index) => (
                         <motion.div
                           key={faq.id}
@@ -212,20 +215,19 @@ const FAQ = () => {
                         >
                           <button
                             onClick={() => toggleItem(faq.id)}
-                            className="w-full px-6 py-6 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors"
+                            className="w-full px-8 py-8 text-left hover:bg-white/[0.02] focus:outline-none transition-colors"
                           >
                             <div className="flex items-center justify-between">
-                              <h3 className="text-lg font-medium text-gray-900 pr-4">
+                              <h3 className="text-lg font-bold text-white pr-4 uppercase tracking-tight">
                                 {faq.question}
                               </h3>
                               <ChevronDown
-                                className={`h-5 w-5 text-gray-400 flex-shrink-0 transition-transform ${
-                                  openItems.includes(faq.id) ? 'rotate-180' : ''
-                                }`}
+                                className={`h-5 w-5 text-indigo-400 flex-shrink-0 transition-transform ${openItems.includes(faq.id) ? 'rotate-180' : ''
+                                  }`}
                               />
                             </div>
                           </button>
-                          
+
                           <AnimatePresence>
                             {openItems.includes(faq.id) && (
                               <motion.div
@@ -235,8 +237,8 @@ const FAQ = () => {
                                 transition={{ duration: 0.3 }}
                                 className="overflow-hidden"
                               >
-                                <div className="px-6 pb-6">
-                                  <p className="text-gray-600 leading-relaxed">
+                                <div className="px-8 pb-8">
+                                  <p className="text-zinc-400 leading-relaxed font-medium">
                                     {faq.answer}
                                   </p>
                                 </div>
@@ -247,12 +249,12 @@ const FAQ = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-12 text-center">
-                      <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <div className="p-16 text-center">
+                      <Search className="h-12 w-12 text-zinc-700 mx-auto mb-6" />
+                      <h3 className="text-xl font-black text-white mb-2 uppercase">
                         No results found
                       </h3>
-                      <p className="text-gray-500">
+                      <p className="text-zinc-500 font-medium">
                         Try adjusting your search terms or browse different categories.
                       </p>
                     </div>
@@ -278,11 +280,17 @@ const FAQ = () => {
             <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
               Can't find the answer you're looking for? Our friendly support team is here to help.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-white text-blue-900 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <button
+                onClick={() => navigate('/contact')}
+                className="px-8 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all active:scale-95 shadow-xl"
+              >
                 Contact Support
               </button>
-              <button className="px-8 py-4 border-2 border-white/30 text-white rounded-xl font-semibold text-lg hover:border-white hover:bg-white/10 transition-all">
+              <button
+                onClick={() => navigate('/pricing')}
+                className="px-8 py-5 border-2 border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/5 transition-all"
+              >
                 Schedule Demo
               </button>
             </div>

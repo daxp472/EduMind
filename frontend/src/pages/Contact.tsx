@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock, MessageSquare, Send, CircleCheck as CheckCircle, Sparkles, ArrowRight, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { contactAPI } from '../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -23,12 +24,15 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    toast.success('Communication established. Our team will respond within 24 hours.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    setIsSubmitting(false);
+    try {
+      await contactAPI.submitForm(formData);
+      toast.success('Communication established. Our team will respond within 24 hours.');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err: any) {
+      toast.error(err.message || 'Transmission failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [

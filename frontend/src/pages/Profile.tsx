@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Edit3, Camera, BookOpen, Target, Zap, Clock, Loader, GraduationCap, Star } from 'lucide-react';
+import { Calendar, MapPin, Edit3, Camera, BookOpen, Target, Zap, Clock, Loader, GraduationCap, Star, Save } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsAPI, academicAPI, achievementsAPI, activityAPI, studySessionsAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 // Define types for our data
 interface Achievement {
@@ -69,7 +70,7 @@ interface UserProfileData {
 }
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'academic' | 'subscription'>('overview');
@@ -186,27 +187,83 @@ const Profile = () => {
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-                <h1 className="text-4xl font-black tracking-tight">{profileData.name}</h1>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                    className="text-4xl font-black tracking-tight bg-white/5 border border-white/10 rounded-xl px-4 py-1 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                ) : (
+                  <h1 className="text-4xl font-black tracking-tight">{profileData.name}</h1>
+                )}
                 <div className={`inline-flex self-center md:self-auto px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${currentPlan.bg} ${currentPlan.color}`}>
                   {currentPlan.name} Tier
                 </div>
               </div>
-              <p className="text-zinc-400 text-lg mb-6 max-w-2xl">{profileData.bio}</p>
+
+              {isEditing ? (
+                <textarea
+                  value={profileData.bio}
+                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                  className="text-zinc-400 text-lg mb-6 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                  rows={2}
+                />
+              ) : (
+                <p className="text-zinc-400 text-lg mb-6 max-w-2xl">{profileData.bio}</p>
+              )}
 
               <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-zinc-500 font-medium">
-                <div className="flex items-center gap-2"><MapPin size={16} className="text-indigo-400" /> {profileData.location}</div>
-                <div className="flex items-center gap-2"><GraduationCap size={16} className="text-indigo-400" /> {profileData.institution}</div>
-                <div className="flex items-center gap-2"><Calendar size={16} className="text-indigo-400" /> Joined {profileData.joinedDate}</div>
+                <div className="flex items-center gap-2">
+                  <MapPin size={16} className="text-indigo-400" />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.location}
+                      onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                      className="bg-white/5 border border-white/10 rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  ) : profileData.location}
+                </div>
+                <div className="flex items-center gap-2">
+                  <GraduationCap size={16} className="text-indigo-400" />
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={profileData.institution}
+                      onChange={(e) => setProfileData({ ...profileData, institution: e.target.value })}
+                      className="bg-white/5 border border-white/10 rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  ) : profileData.institution}
+                </div>
+                {!isEditing && <div className="flex items-center gap-2"><Calendar size={16} className="text-indigo-400" /> Joined {profileData.joinedDate}</div>}
               </div>
             </div>
 
             <div className="flex flex-col gap-3 w-full md:w-auto">
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="px-8 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
-              >
-                <Edit3 size={16} /> Edit Profile
-              </button>
+              {isEditing ? (
+                <button
+                  onClick={async () => {
+                    try {
+                      await updateUser(profileData);
+                      setIsEditing(false);
+                      toast.success('Profile updated successfully!');
+                    } catch (err) {
+                      toast.error('Failed to update profile');
+                    }
+                  }}
+                  className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Save size={16} /> Save Changes
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-8 py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Edit3 size={16} /> Edit Profile
+                </button>
+              )}
               <button
                 onClick={() => navigate('/pricing')}
                 className="px-8 py-3 bg-zinc-800 text-white rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
