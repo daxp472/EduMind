@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme.dart';
 import 'providers/auth_provider.dart';
+import 'providers/activity_provider.dart';
+import 'providers/study_provider.dart';
+import 'providers/analytics_provider.dart';
+import 'providers/ai_provider.dart';
+import 'providers/achievements_provider.dart';
 import 'screens/landing_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
@@ -9,6 +14,7 @@ import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/reset_password_screen.dart';
+import 'screens/main_navigation.dart';
 import 'screens/tools/summarizer_input.dart';
 import 'screens/tools/summarizer_result.dart';
 import 'screens/tools/quiz_setup.dart';
@@ -37,6 +43,8 @@ import 'screens/tools/essay_analyzer.dart';
 import 'screens/tools/research_assistant.dart';
 import 'screens/study/notes_list.dart';
 import 'screens/study/note_editor.dart';
+import 'screens/analytics/knowledge_map.dart';
+import 'screens/analytics/analytics_hub.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +59,11 @@ class EduMindApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..tryAutoLogin()),
+        ChangeNotifierProvider(create: (_) => ActivityProvider()),
+        ChangeNotifierProvider(create: (_) => StudyProvider()),
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
+        ChangeNotifierProvider(create: (_) => AIProvider()),
+        ChangeNotifierProvider(create: (_) => AchievementsProvider()),
       ],
       child: MaterialApp(
         title: 'EduMind',
@@ -58,12 +71,13 @@ class EduMindApp extends StatelessWidget {
         theme: AppTheme.darkTheme,
         home: const AuthWrapper(),
         routes: {
+          '/main': (context) => const MainNavigation(),
           '/onboarding': (context) => const OnboardingScreen(),
           '/landing': (context) => const LandingScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
           '/reset_password': (context) => const ResetPasswordScreen(),
-          '/home': (context) => const HomeScreen(),
+          '/home': (context) => const MainNavigation(), // Point home to MainNav
           '/profile': (context) => const ProfileScreen(),
           
           // AI Tools
@@ -81,7 +95,7 @@ class EduMindApp extends StatelessWidget {
 
           // Study Hub
           '/subjects': (context) => const SubjectListScreen(),
-          '/subject_detail': (context) => const SubjectDetailScreen(subjectName: 'Biology'),
+          '/subject_detail': (context) => SubjectDetailScreen(subjectName: ModalRoute.of(context)!.settings.arguments as String),
           '/planner': (context) => const PlannerCalendarScreen(),
           '/groups': (context) => const GroupDiscoveryScreen(),
           '/group_chat': (context) => const GroupChatScreen(groupName: 'Medical Scholars'),
@@ -102,6 +116,10 @@ class EduMindApp extends StatelessWidget {
           '/about': (context) => const AboutAppScreen(),
           '/activity': (context) => const ActivityLogScreen(),
           '/achievements': (context) => const AchievementsScreen(),
+
+          // Analytics
+          '/analytics': (context) => const AnalyticsHubScreen(),
+          '/knowledge_map': (context) => const KnowledgeMapScreen(),
         },
       ),
     );
@@ -124,7 +142,7 @@ class AuthWrapper extends StatelessWidget {
         }
         
         if (auth.isAuthenticated) {
-          return const HomeScreen();
+          return const MainNavigation();
         }
         
         return const LandingScreen();
