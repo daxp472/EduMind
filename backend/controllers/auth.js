@@ -65,6 +65,9 @@ exports.register = async (req, res, next) => {
         html: message
       });
 
+      // Log Signup Activity
+      await logActivity(user._id, 'SIGNUP', 'general');
+
       res.status(201).json({
         success: true,
         message: 'Verification email sent. Please check your email.'
@@ -151,19 +154,22 @@ exports.login = async (req, res, next) => {
     user.lastLogin = Date.now();
     await user.save({ validateBeforeSave: false });
 
-    // Add login activity using new utility
+    // Add login activity using normalized enum
     await logActivity(
       user._id,
-      'login',
-      'User Login',
-      'User successfully logged in'
+      'LOGIN',
+      'general',
+      { success: true }
     );
 
     sendTokenResponse(user, 200, res);
   } catch (err) {
+    console.error('DEBUG LOGIN ERROR:', err);
     res.status(500).json({
       success: false,
-      message: 'Server error during login'
+      message: 'Server error during login',
+      error: err.message,
+      stack: err.stack
     });
   }
 };

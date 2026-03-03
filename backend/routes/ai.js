@@ -8,7 +8,8 @@ const {
   generateFlashcards,
   getAIHistory
 } = require('../controllers/ai');
-const { protect, guestAccess, checkUsageLimit } = require('../middleware/auth');
+const { protect, guestAccess } = require('../middleware/auth');
+const aiUsageGuard = require('../middlewares/aiUsageGuard');
 
 const router = express.Router();
 
@@ -22,13 +23,13 @@ const upload = multer({
 });
 
 // Guest accessible routes (limited usage)
-router.post('/summarize', guestAccess, checkUsageLimit, upload.single('file'), summarizeText);
-router.post('/generate-quiz', guestAccess, checkUsageLimit, generateQuiz);
-router.post('/tutor', guestAccess, checkUsageLimit, aiTutor);
+router.post('/summarize', guestAccess, aiUsageGuard, upload.single('file'), summarizeText);
+router.post('/generate-quiz', guestAccess, aiUsageGuard, generateQuiz);
+router.post('/tutor', guestAccess, aiUsageGuard, aiTutor);
 
 // Protected routes (full access for authenticated users)
 router.use(protect);
-router.use(checkUsageLimit);
+router.use(aiUsageGuard);
 
 router.post('/study-planner', studyPlanner);
 router.post('/flashcards', generateFlashcards);

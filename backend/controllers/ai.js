@@ -1,9 +1,13 @@
 const axios = require('axios');
 const pdf = require('pdf-parse');
 const User = require('../models/User');
-const AIRequest = require('../models/AIRequest');
-const logActivity = require('../utils/activityLogger');
-const updateAnalytics = require('../utils/analyticsUpdater');
+const Summary = require('../models/Summary');
+const Quiz = require('../models/Quiz');
+const Flashcard = require('../models/Flashcard');
+const AIUsage = require('../models/AIUsage');
+const UserActivity = require('../models/UserActivity');
+const aiService = require('../services/aiService');
+const logger = require('../utils/logger');
 const aiConfig = require('../config/ai');
 
 // Generic function to call different AI services
@@ -344,72 +348,121 @@ exports.getAIHistory = async (req, res, next) => {
   }
 };
 
-// @desc    Summarize text or file
+const { YoutubeTranscript } = require('youtube-transcript');
+
+// Helper to extract YouTube ID from URL
+const extractYoutubeId = (url) => {
+  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
+// ... (existing code: callAIService, buildPrompt, parseResponse, callOpenAI, callGemini, callGrok, tryAIServices, getMockResponse - keeping for internal legacy/tools if needed, but primary is aiService)
+
+// @desc    Summarize text, file, or YouTube video
 // @route   POST /api/ai/summarize
 // @access  Private/Guest
 exports.summarizeText = async (req, res, next) => {
   try {
-    const { text, type = 'general', length = 'medium' } = req.body;
+    const { text, type = 'general', length = 'medium', noteId, summarizeType, youtubeUrl } = req.body;
     const file = req.file;
 
-    if (!text && !file) {
+    let contentToSummarize = text;
+    let youtubeMetadata = null;
+
+    // Handle YouTube Video Summarization
+    if (summarizeType === 'YOUTUBE_VIDEO' || youtubeUrl) {
+      if (!youtubeUrl) {
+        return res.status(400).json({ success: false, message: 'Please provide a YouTube URL' });
+      }
+
+      const videoId = extractYoutubeId(youtubeUrl);
+      if (!videoId) {
+        return res.status(400).json({ success: false, message: 'Invalid YouTube URL' });
+      }
+
+      try {
+        const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+        contentToSummarize = transcriptItems.map(item => item.text).join(' ');
+
+        youtubeMetadata = {
+          videoId,
+          videoUrl: youtubeUrl,
+          type: 'youtube'
+        };
+      } catch (err) {
+        logger.error('YouTube Transcript Error: %s', err.message);
+        return res.status(422).json({
+          success: false,
+          message: 'Could not fetch transcript for this video. Please ensure it has captions enabled.'
+        });
+      }
+    }
+
+    if (!contentToSummarize && !file) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide text or upload a file to summarize'
+        message: 'Please provide text, upload a file, or provide a YouTube URL'
       });
     }
 
-    const { result, serviceName } = await tryAIServices('summarize', { text, type, length, file });
+    // Call Secure AI Service (Gemini via aiService)
+    const aiResponse = await aiService.chatCompletion(
+      req.user.id,
+      'summarize',
+      {
+        model: 'gemini-1.5-flash',
+        messages: [{ role: 'user', content: buildPrompt('summarize', { text: contentToSummarize, type, length, file }) }],
+        temperature: 0.7
+      }
+    );
 
-    // Log the request
-    await AIRequest.create({
-      user: req.user.id === 'guest' ? null : req.user.id,
-      tool: 'summarizer',
-      input: file ? `[File: ${file.originalname}] ${text || ''}` : text,
-      output: result.summary,
-      aiService: serviceName,
-      tokensUsed: result.tokensUsed || 0,
-      processingTime: result.processingTime || 0,
-      success: true
-    });
+    const result = parseResponse('summarize', aiResponse.choices[0].message.content);
 
-    // Track activity and analytics for logged-in users
+    // Persistent storage for logged-in users
+    let savedSummary = null;
     if (req.user.id !== 'guest') {
-      await logActivity(
-        req.user.id,
-        'summary_created',
-        'AI Summary Generated',
-        `Summarized ${file ? 'document' : type + ' text'} (${length} length)`,
-        { type, length, file: file ? file.originalname : null }
-      );
-      await updateAnalytics(req.user.id, 'summarizer');
+      const summaryData = {
+        user: req.user.id,
+        title: youtubeMetadata ? `YouTube Summary: ${youtubeMetadata.videoId}` : `Summary of ${file ? file.originalname : (text ? text.slice(0, 30) + '...' : 'Content')}`,
+        content: result.summary,
+        source: {
+          type: youtubeMetadata ? 'youtube' : (file ? 'file' : (noteId ? 'note' : 'text')),
+          sourceId: noteId || null,
+          model: (noteId || youtubeMetadata) ? 'StudyMaterial' : 'AIRequest',
+          ...youtubeMetadata
+        },
+        metadata: {
+          type,
+          length,
+          tokens: aiResponse.usage.total_tokens,
+          provider: aiResponse.provider
+        }
+      };
+
+      savedSummary = await Summary.create(summaryData);
+
+      // Log Activity
+      await UserActivity.create({
+        userId: req.user.id,
+        actionType: 'SUMMARY_CREATED',
+        toolName: 'summarizer',
+        sourceId: savedSummary._id,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        metadata: { type, length, source: youtubeMetadata ? 'youtube' : 'text' }
+      });
     }
 
     res.status(200).json({
       success: true,
       data: {
         summary: result.summary,
-        aiService: serviceName
+        summaryId: savedSummary ? savedSummary._id : null
       }
     });
   } catch (err) {
-    try {
-      await AIRequest.create({
-        user: req.user.id === 'guest' ? null : req.user.id,
-        tool: 'summarizer',
-        input: req.file ? `[File: ${req.file.originalname}]` : req.body.text,
-        aiService: 'unknown',
-        success: false,
-        error: err.message
-      });
-    } catch (logErr) {
-      console.error('Failed to log AI request error:', logErr);
-    }
-
-    res.status(500).json({
-      success: false,
-      message: err.message.includes('No AI services') ? err.message : 'Server error generating summary'
-    });
+    next(err);
   }
 };
 
@@ -418,7 +471,7 @@ exports.summarizeText = async (req, res, next) => {
 // @access  Private/Guest
 exports.generateQuiz = async (req, res, next) => {
   try {
-    const { text, numQuestions = 5, difficulty = 'medium' } = req.body;
+    const { text, numQuestions = 5, difficulty = 'medium', sourceId, sourceType = 'text' } = req.body;
 
     if (!text || text.trim().length < 10) {
       return res.status(400).json({
@@ -427,64 +480,64 @@ exports.generateQuiz = async (req, res, next) => {
       });
     }
 
-    const { result, serviceName } = await tryAIServices('quiz', { text, numQuestions, difficulty });
+    // Call Secure AI Service (Gemini via aiService)
+    const aiResponse = await aiService.chatCompletion(
+      req.user.id,
+      'generate-quiz',
+      {
+        model: 'gemini-1.5-flash',
+        messages: [{ role: 'user', content: buildPrompt('quiz', { text, numQuestions, difficulty }) }],
+        temperature: 0.7
+      }
+    );
 
-    await AIRequest.create({
-      user: req.user.id === 'guest' ? null : req.user.id,
-      tool: 'quiz-generator',
-      input: text,
-      output: JSON.stringify(result.questions),
-      aiService: serviceName,
-      tokensUsed: result.tokensUsed || 0,
-      processingTime: result.processingTime || 0,
-      success: true
-    });
+    const result = parseResponse('quiz', aiResponse.choices[0].message.content);
 
+    // Persistent storage for logged-in users
+    let savedQuiz = null;
     if (req.user.id !== 'guest') {
-      await logActivity(
-        req.user.id,
-        'quiz_generated',
-        'AI Quiz Generated',
-        `Generated ${numQuestions} question quiz from content`,
-        { numQuestions, difficulty }
-      );
-      await updateAnalytics(req.user.id, 'quiz');
+      savedQuiz = await Quiz.create({
+        user: req.user.id,
+        title: `Quiz on ${text.slice(0, 30)}...`,
+        questions: result.questions,
+        difficulty,
+        source: {
+          type: sourceType,
+          sourceId: sourceId || null,
+          model: sourceType === 'summary' ? 'Summary' : 'StudyMaterial'
+        }
+      });
+
+      // Log Activity
+      await UserActivity.create({
+        userId: req.user.id,
+        actionType: 'QUIZ_GENERATED',
+        toolName: 'quiz_forge',
+        sourceId: savedQuiz._id,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        metadata: { numQuestions, difficulty }
+      });
     }
 
     res.status(200).json({
       success: true,
       data: {
         questions: result.questions,
-        aiService: serviceName
+        quizId: savedQuiz ? savedQuiz._id : null
       }
     });
   } catch (err) {
-    try {
-      await AIRequest.create({
-        user: req.user.id === 'guest' ? null : req.user.id,
-        tool: 'quiz-generator',
-        input: req.body.text,
-        aiService: 'unknown',
-        success: false,
-        error: err.message
-      });
-    } catch (logErr) {
-      console.error('Failed to log AI request error:', logErr);
-    }
-
-    res.status(500).json({
-      success: false,
-      message: err.message.includes('No AI services') ? err.message : 'Server error generating quiz'
-    });
+    next(err);
   }
 };
 
-// @desc    AI Tutor (kept for route compatibility, but not exposed in frontend yet)
+// @desc    AI Tutor
 // @route   POST /api/ai/tutor
 // @access  Private/Guest
 exports.aiTutor = async (req, res, next) => {
   try {
-    const { question, context } = req.body;
+    const { question, context, sourceId } = req.body;
 
     if (!question) {
       return res.status(400).json({
@@ -493,31 +546,39 @@ exports.aiTutor = async (req, res, next) => {
       });
     }
 
-    const { result, serviceName } = await tryAIServices('tutor', { question, context });
+    const aiResponse = await aiService.chatCompletion(
+      req.user.id,
+      'tutor',
+      {
+        model: 'gemini-1.5-flash',
+        messages: [{ role: 'user', content: buildPrompt('tutor', { question, context }) }],
+        temperature: 0.7
+      }
+    );
 
-    await AIRequest.create({
-      user: req.user.id === 'guest' ? null : req.user.id,
-      tool: 'tutor',
-      input: question,
-      output: result.answer,
-      aiService: serviceName,
-      tokensUsed: result.tokensUsed || 0,
-      processingTime: result.processingTime || 0,
-      success: true
-    });
+    const result = parseResponse('tutor', aiResponse.choices[0].message.content);
+
+    // Activity logging only for registered users
+    if (req.user.id !== 'guest') {
+      await UserActivity.create({
+        userId: req.user.id,
+        actionType: 'STUDY_SESSION_STARTED',
+        toolName: 'ai_tutor',
+        sourceId: sourceId || null,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        metadata: { question: question.slice(0, 50) }
+      });
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        answer: result.answer,
-        aiService: serviceName
+        answer: result.answer
       }
     });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message.includes('No AI services') ? err.message : 'Server error during AI tutoring'
-    });
+    next(err);
   }
 };
 
@@ -535,53 +596,37 @@ exports.studyPlanner = async (req, res, next) => {
       });
     }
 
-    const { result, serviceName } = await tryAIServices('study-planner', { subjects, timeAvailable, goals });
-
-    await AIRequest.create({
-      user: req.user.id,
-      tool: 'study-planner',
-      input: JSON.stringify({ subjects, timeAvailable, goals }),
-      output: JSON.stringify(result.plan),
-      aiService: serviceName,
-      tokensUsed: result.tokensUsed || 0,
-      processingTime: result.processingTime || 0,
-      success: true
-    });
-
-    await logActivity(
+    // Call Secure AI Service (Gemini via aiService)
+    const aiResponse = await aiService.chatCompletion(
       req.user.id,
-      'study_session_started',
-      'Study Plan Created',
-      `Created study plan for: ${Array.isArray(subjects) ? subjects.join(', ') : subjects}`,
-      { subjects, timeAvailable }
+      'study-planner',
+      {
+        model: 'gemini-1.5-flash',
+        messages: [{ role: 'user', content: buildPrompt('study-planner', { subjects, timeAvailable, goals }) }],
+        temperature: 0.7
+      }
     );
-    await updateAnalytics(req.user.id, 'study-planner');
+
+    const result = parseResponse('study-planner', aiResponse.choices[0].message.content);
+
+    // Activity logging
+    await UserActivity.create({
+      userId: req.user.id,
+      actionType: 'STUDY_SESSION_STARTED',
+      toolName: 'study_planner',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { subjects, timeAvailable }
+    });
 
     res.status(200).json({
       success: true,
       data: {
-        plan: result.plan,
-        aiService: serviceName
+        plan: result.plan
       }
     });
   } catch (err) {
-    try {
-      await AIRequest.create({
-        user: req.user.id,
-        tool: 'study-planner',
-        input: JSON.stringify(req.body),
-        aiService: 'unknown',
-        success: false,
-        error: err.message
-      });
-    } catch (logErr) {
-      console.error('Failed to log AI request error:', logErr);
-    }
-
-    res.status(500).json({
-      success: false,
-      message: err.message.includes('No AI services') ? err.message : 'Server error during study planning'
-    });
+    next(err);
   }
 };
 
@@ -590,7 +635,7 @@ exports.studyPlanner = async (req, res, next) => {
 // @access  Private
 exports.generateFlashcards = async (req, res, next) => {
   try {
-    const { text, numCards = 10 } = req.body;
+    const { text, numCards = 10, sourceId, sourceType = 'text' } = req.body;
 
     if (!text || text.trim().length < 10) {
       return res.status(400).json({
@@ -599,52 +644,47 @@ exports.generateFlashcards = async (req, res, next) => {
       });
     }
 
-    const { result, serviceName } = await tryAIServices('flashcards', { text, numCards });
+    const aiResponse = await aiService.chatCompletion(
+      req.user.id,
+      'flashcards',
+      {
+        model: 'gemini-1.5-flash',
+        messages: [{ role: 'user', content: buildPrompt('flashcards', { text, numCards }) }],
+        temperature: 0.7
+      }
+    );
 
-    await AIRequest.create({
+    const result = parseResponse('flashcards', aiResponse.choices[0].message.content);
+
+    const savedDeck = await Flashcard.create({
       user: req.user.id,
-      tool: 'flashcard-generator',
-      input: text,
-      output: JSON.stringify(result.flashcards),
-      aiService: serviceName,
-      tokensUsed: result.tokensUsed || 0,
-      processingTime: result.processingTime || 0,
-      success: true
+      deckTitle: `Flashcards: ${text.slice(0, 30)}...`,
+      cards: result.flashcards,
+      source: {
+        type: sourceType,
+        sourceId: sourceId || null,
+        model: sourceType === 'summary' ? 'Summary' : 'StudyMaterial'
+      }
     });
 
-    await logActivity(
-      req.user.id,
-      'flashcard_created',
-      'AI Flashcards Generated',
-      `Generated ${numCards} flashcards from content`,
-      { numCards }
-    );
-    await updateAnalytics(req.user.id, 'flashcards');
+    await UserActivity.create({
+      userId: req.user.id,
+      actionType: 'FLASHCARD_CREATED',
+      toolName: 'study_planner',
+      sourceId: savedDeck._id,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      metadata: { numCards }
+    });
 
     res.status(200).json({
       success: true,
       data: {
         flashcards: result.flashcards,
-        aiService: serviceName
+        deckId: savedDeck._id
       }
     });
   } catch (err) {
-    try {
-      await AIRequest.create({
-        user: req.user.id,
-        tool: 'flashcard-generator',
-        input: req.body.text,
-        aiService: 'unknown',
-        success: false,
-        error: err.message
-      });
-    } catch (logErr) {
-      console.error('Failed to log AI request error:', logErr);
-    }
-
-    res.status(500).json({
-      success: false,
-      message: err.message.includes('No AI services') ? err.message : 'Server error during flashcard generation'
-    });
+    next(err);
   }
 };

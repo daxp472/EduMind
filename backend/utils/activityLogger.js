@@ -1,46 +1,44 @@
-const Activity = require('../models/Activity');
+const UserActivity = require('../models/UserActivity');
 const User = require('../models/User');
 
 /**
- * Log a user activity to the database
+ * Log a user activity to the database (Normalized)
  * @param {string} userId - ID of the user
- * @param {string} action - Type of action (from Activity model enum)
- * @param {string} title - Human readable title
- * @param {string} description - Optional detailed description
+ * @param {string} actionType - Type of action (from UserActivity model enum)
+ * @param {string} toolName - Tool associated with activity
  * @param {Object} metadata - Optional additional data
- * @param {number} points - Optional gamification points
+ * @param {string} sourceId - Optional related record ID
  */
-const logActivity = async (userId, action, title, description = '', metadata = {}, points = 0) => {
+const logActivity = async (userId, actionType, toolName = 'general', metadata = {}, sourceId = null) => {
     try {
-        // Create activity record
-        const activity = await Activity.create({
-            user: userId,
-            action,
-            title,
-            description,
+        // Create activity record in the NEW unified model
+        const activity = await UserActivity.create({
+            userId,
+            actionType: actionType.toUpperCase(),
+            toolName,
             metadata,
-            pointValue: points
+            sourceId
         });
 
-        // Also add to User's recentActivity array for legacy support/quick access
+        // Sync to User's recentActivity array for high-speed dashboard access
         await User.findByIdAndUpdate(userId, {
             $push: {
                 recentActivity: {
                     $each: [{
-                        type: action,
-                        title,
-                        description,
+                        type: actionType.toLowerCase(), // Maintain lowercase for frontend compatibility if needed
+                        title: `${actionType.replace('_', ' ')} Registered`,
                         timestamp: Date.now()
                     }],
-                    $slice: -50 // Keep only last 50
+                    $slice: -50
                 }
             }
         });
 
         return activity;
     } catch (err) {
-        console.error(`Error logging activity: ${err.message}`);
-        // Don't throw - logging shouldn't crash the main process
+        // No console.logs in production paths - using logger if available
+        const logger = require('./logger');
+        if (logger) logger.error(`Error logging activity: ${err.message}`);
     }
 };
 

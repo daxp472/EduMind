@@ -66,14 +66,12 @@ exports.addAchievement = async (req, res, next) => {
       { upsert: true, new: true, runValidators: true }
     );
 
-    // Log as activity
+    // Log normalized activity
     await logActivity(
       req.user.id,
-      'achievement_earned',
-      `Achievement Unlocked: ${title}`,
-      description,
-      { code, points },
-      points
+      'ACHIEVEMENT_EARNED',
+      'general',
+      { code, points }
     );
 
     res.status(201).json({

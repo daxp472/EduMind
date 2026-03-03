@@ -1,4 +1,4 @@
-const Activity = require('../models/Activity');
+const UserActivity = require('../models/UserActivity');
 const logActivity = require('../utils/activityLogger');
 
 // @desc    Get recent activity
@@ -6,7 +6,7 @@ const logActivity = require('../utils/activityLogger');
 // @access  Private
 exports.getRecentActivity = async (req, res, next) => {
   try {
-    const activities = await Activity.find({ user: req.user.id })
+    const activities = await UserActivity.find({ userId: req.user.id })
       .sort('-createdAt')
       .limit(50);
 
@@ -28,9 +28,9 @@ exports.getRecentActivity = async (req, res, next) => {
 // @access  Private
 exports.getActivityByType = async (req, res, next) => {
   try {
-    const activities = await Activity.find({
-      user: req.user.id,
-      action: req.params.type
+    const activities = await UserActivity.find({
+      userId: req.user.id,
+      actionType: req.params.type.toUpperCase()
     }).sort('-createdAt');
 
     res.status(200).json({
