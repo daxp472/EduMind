@@ -4,6 +4,11 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
+const { globalLimiter } = require('./middlewares/rateLimiter');
+const logger = require('./utils/logger');
 
 // Load environment variables
 dotenv.config();
@@ -23,20 +28,28 @@ const preferenceRoutes = require('./routes/preference');
 // Initialize app
 const app = express();
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-if (process.env.NODE_ENV !== 'test') {
-    app.use(morgan('combined'));
-}
+// Security Middlewares
+app.use(helmet()); // Secure HTTP headers
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Database connection (only if not in test mode, or handled in setup)
+// Data Sanitization
+app.use(mongoSanitize()); // Against NoSQL Injection
+app.use(xss()); // Against XSS
+
+// Prevent Parameter Pollution
+app.use(hpp());
+
+// Rate Limiting
+app.use('/api', globalLimiter);
+
 if (process.env.NODE_ENV !== 'test') {
-    mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/edumind')
-        .then(() => console.log('Connected to MongoDB'))
-        .catch((err) => console.error('MongoDB connection error:', err));
+    app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 }
 
 // Routes
@@ -58,12 +71,19 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    if (process.env.NODE_ENV !== 'test') {
-        console.error(err.stack);
-    }
-    res.status(500).json({
-        message: 'Something went wrong!',
-        error: process.env.NODE_ENV === 'development' ? err.message : {}
+    logger.error(`${err.name}: ${err.message}`, {
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+    });
+
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        status: 'error',
+        message: process.env.NODE_ENV === 'production' && statusCode === 500
+            ? 'Internal Server Error'
+            : err.message
     });
 });
 
