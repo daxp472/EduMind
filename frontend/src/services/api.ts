@@ -116,6 +116,17 @@ export const authAPI = {
 };
 
 // AI Tools API
+const handleAIResponse = async (response: Response, defaultError: string) => {
+  if (!response.ok) {
+    const error = await response.json();
+    if (response.status === 429) {
+      throw new Error(`QUOTA_EXCEEDED: ${error.message || 'AI quota reached. Please upgrade your plan or wait for the next billing cycle.'}`);
+    }
+    throw new Error(error.message || defaultError);
+  }
+  return response.json();
+};
+
 export const aiAPI = {
   // Text or File summarization
   summarizeText: async (data: any, token: string) => {
@@ -129,12 +140,7 @@ export const aiAPI = {
       body: isFormData ? data : JSON.stringify(data),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to generate summary');
-    }
-
-    return response.json();
+    return handleAIResponse(response, 'Failed to generate summary');
   },
 
   // AI Tutor / Question answering
@@ -151,12 +157,7 @@ export const aiAPI = {
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to get AI response');
-    }
-
-    return response.json();
+    return handleAIResponse(response, 'Failed to get AI response');
   },
 
   // Quiz generation
@@ -170,12 +171,7 @@ export const aiAPI = {
       body: JSON.stringify(quizData),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to generate quiz');
-    }
-
-    return response.json();
+    return handleAIResponse(response, 'Failed to generate quiz');
   },
 
   // Flashcard generation
@@ -189,12 +185,7 @@ export const aiAPI = {
       body: JSON.stringify(flashcardData),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to generate flashcards');
-    }
-
-    return response.json();
+    return handleAIResponse(response, 'Failed to generate flashcards');
   },
 
   // Study plan generation
@@ -208,12 +199,7 @@ export const aiAPI = {
       body: JSON.stringify(planData),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to generate study plan');
-    }
-
-    return response.json();
+    return handleAIResponse(response, 'Failed to generate study plan');
   },
 
   // Get AI history
@@ -835,6 +821,25 @@ export const preferenceAPI = {
   },
 };
 
+// Contact API
+export const contactAPI = {
+  submitForm: async (formData: { name: string; email: string; subject: string; message: string }) => {
+    const response = await fetch(`${API_BASE_URL}/support/contact`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to submit contact form');
+    }
+
+    return response.json();
+  }
+};
 
 export const getAuthToken = () => {
   return localStorage.getItem('edumind_token');

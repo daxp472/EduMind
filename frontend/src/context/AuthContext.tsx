@@ -21,6 +21,7 @@ interface AuthContextType {
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
+  updateUser: (userData: Partial<User>) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -115,6 +116,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUser = async (userData: Partial<User>) => {
+    if (!user || !token) return;
+    try {
+      // In a real app, you might call authAPI.updateDetails(userData as any, token)
+      // For now, we update the local state and sync with localStorage
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem('edumind_user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      throw error;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setTokenState(null);
@@ -124,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, signup, updateUser, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
