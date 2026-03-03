@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../core/constants.dart';
+import 'package:provider/provider.dart';
+import '../../core/app_colors.dart';
+import '../../widgets/premium_card.dart';
+import '../../widgets/premium_button.dart';
+import '../../providers/ai_provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class QuizSetupScreen extends StatefulWidget {
   const QuizSetupScreen({super.key});
@@ -11,56 +16,138 @@ class QuizSetupScreen extends StatefulWidget {
 
 class _QuizSetupScreenState extends State<QuizSetupScreen> {
   String _selectedDifficulty = 'Medium';
-  int _questionCount = 10;
+  double _questionCount = 10;
+  final _topicController = TextEditingController();
+
+  @override
+  void dispose() {
+    _topicController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Quiz')),
-      body: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'QUIZ FORGE',
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Choose your topic and difficulty to start.'),
-            const SizedBox(height: 32),
-            _buildSection('TOPIC', TextField(decoration: InputDecoration(hintText: 'e.g. Ancient Rome', labelText: 'What should we quiz on?'))),
+            const Text(
+              'CHALLENGE PARAMETERS',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: AppColors.secondary,
+                letterSpacing: 1.2,
+              ),
+            ).animate().fadeIn().slideX(begin: -0.1),
             const SizedBox(height: 24),
-            _buildSection('DIFFICULTY', Row(
-              children: ['Easy', 'Medium', 'Hard'].map((d) {
-                final isSelected = _selectedDifficulty == d;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedDifficulty = d),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppConstants.primaryColor : AppConstants.surfaceColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(child: Text(d, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.white70))),
-                    ),
+            _buildSection(
+              'KNOWLEDGE DOMAIN',
+              PremiumCard(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: TextField(
+                  controller: _topicController,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: const InputDecoration(
+                    hintText: 'e.g. Molecular Biology or WWII',
+                    hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
+                    border: InputBorder.none,
                   ),
-                );
-              }).toList(),
-            )),
-            const SizedBox(height: 24),
-            _buildSection('QUESTION COUNT', Slider(
-              value: _questionCount.toDouble(),
-              min: 5,
-              max: 20,
-              divisions: 3,
-              label: _questionCount.toString(),
-              activeColor: AppConstants.primaryColor,
-              onChanged: (v) => setState(() => _questionCount = v.round()),
-            )),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Text('START QUIZ'),
+                ),
+              ),
+            ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05),
+            const SizedBox(height: 32),
+            _buildSection(
+              'COGNITIVE LOAD (DIFFICULTY)',
+              Row(
+                children: ['Easy', 'Medium', 'Hard'].map((d) {
+                  final isSelected = _selectedDifficulty == d;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedDifficulty = d),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.secondary : AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected ? Colors.white24 : Colors.white.withOpacity(0.03),
+                          ),
+                          boxShadow: isSelected ? [
+                            BoxShadow(
+                              color: AppColors.secondary.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                          ] : [],
+                        ),
+                        child: Center(
+                          child: Text(
+                            d.toUpperCase(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11,
+                              color: isSelected ? Colors.white : AppColors.textMuted,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05),
+            const SizedBox(height: 32),
+            _buildSection(
+              'ITERATION COUNT: ${_questionCount.round()}',
+              PremiumCard(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: AppColors.secondary,
+                    inactiveTrackColor: Colors.white.withOpacity(0.05),
+                    thumbColor: Colors.white,
+                    overlayColor: AppColors.secondary.withOpacity(0.1),
+                    valueIndicatorColor: AppColors.secondary,
+                  ),
+                  child: Slider(
+                    value: _questionCount,
+                    min: 5,
+                    max: 20,
+                    divisions: 3,
+                    label: _questionCount.round().toString(),
+                    onChanged: (v) => setState(() => _questionCount = v),
+                  ),
+                ),
+              ),
+            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05),
+            const SizedBox(height: 48),
+            Consumer<AIProvider>(
+              builder: (context, provider, _) {
+                return PremiumButton(
+                  text: 'INITIATE FORGE',
+                  icon: LucideIcons.flame,
+                  color: AppColors.secondary,
+                  isLoading: provider.isLoading,
+                  onPressed: () => _handleForge(provider),
+                ).animate().fadeIn(delay: 400.ms).scale(begin: const Offset(0.9, 0.9));
+              },
             ),
-            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -71,10 +158,47 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white54, fontSize: 12, letterSpacing: 1.2)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white38,
+            fontSize: 10,
+            letterSpacing: 1.0,
+          ),
+        ),
         const SizedBox(height: 12),
         child,
       ],
     );
+  }
+
+  void _handleForge(AIProvider provider) async {
+    if (_topicController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please specify a knowledge domain first.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    final result = await provider.generateQuiz(
+      topic: _topicController.text,
+      numQuestions: _questionCount.round(),
+      difficulty: _selectedDifficulty.toLowerCase(),
+    );
+    
+    if (mounted && result != null) {
+      Navigator.pushNamed(context, '/quiz_screen', arguments: result);
+    } else if (mounted && provider.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.error!),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 }
